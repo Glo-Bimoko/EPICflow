@@ -1,0 +1,13 @@
+1. Add new method for estimating genomic inflation.
+
+Maarten M. van Iterson, Erik W. van Zwet, The Bios Consortium, P. Eline Slagboom, Bastiaan T. Heijmans. Controlling bias and inflation in epigenome- and transcriptome-wide association studies using the empirical null distribution. 
+http://biorxiv.org/content/early/2016/05/27/055772
+
+2. Give a warning when a idat is not found during the cnv extraction. It now gives a mclapply warning.
+
+3. Regional localization plots.
+
+4. Add additional cell count references/algorithms:
+    - Middleton et al. Saliva cell type DNA methylation reference panel for epidemiology studies in children. medRxiv 2020.09.14.20191361
+    - Salas et al. An optimized library for reference-based deconvolution of whole-blood biospecimens assayed using the Illumina HumanMethylationEPIC BeadArray. Genome Biol 19, 64 (2018).
+    - Zheng, S.C., Breeze, C.E., Beck, S. et al. Identification of differentially methylated cell types in epigenome-wide association studies. Nat Methods 15, 1059–1066 (2018).

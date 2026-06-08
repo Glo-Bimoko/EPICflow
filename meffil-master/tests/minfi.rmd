@@ -1,0 +1,340 @@
+```{r comparison-init, echo=FALSE, message=F}
+
+library(knitr)
+library(Cairo)
+opts_chunk$set(warning=FALSE, fig.width=6, fig.height=6, dev="CairoPNG", stop=TRUE)
+
+library(minfi)
+library(matrixStats)
+library(GEOquery)
+
+```
+
+# Comparison of functional normalization implementations
+
+## Download example data set 
+
+```{r child = 'dataset-450k-demo.rmd'}
+```
+
+```{r}
+path <- download.450k.demo.dataset()
+```
+
+## Load and normalize using `minfi`
+
+The current version `minfi::preprocessFunnorm()` contains a bug (Feb 25, 2015).
+To make a proper comparison with `meffil`, this bug should be fixed
+and `minfi` reinstalled.
+This can be done with the included patch file: `fix-minfi-control-matrix.patch`.
+
+Load the data.
+
+```{r, message=FALSE}
+library(minfi, quietly=TRUE)
+```
+
+Normalize using the minfi package.
+```{r comparison-minfi, cache=T}
+raw.minfi <- read.metharray.exp(base = path)
+system.time(norm.minfi <- preprocessFunnorm(raw.minfi, nPCs=2,
+                                            sex=NULL, bgCorr=TRUE, dyeCorr=TRUE, verbose=TRUE))
+```
+
+## Normalize using `meffil`
+
+Load the code and sample filename information.
+```{r}
+library(meffil)
+samplesheet <- meffil.create.samplesheet(path)
+```
+
+The package uses `mclapply` to speed up computation.
+Provide the number of processors available.
+```{r}
+options(mc.cores=5)
+```
+
+List the cell type references available.
+```{r}
+meffil.list.cell.type.references()
+```
+
+Set parameters for the analysis.
+```{r}
+qc.file <- "minfi/qc-report.html"
+author <- "Prickett, et al."
+study <- "Silver-Russell syndrome patients (GEO:GSE55491)"
+number.pcs <- 2
+norm.file <- "minfi/normalization-report.html"
+cell.type.reference <- "blood gse35069"
+```
+
+## Normalize using `meffil` step-by-step
+
+Create QC objects for QC report and later normalization.
+```{r comparison-meffil-qc, cache=T}
+qc.objects <- meffil.qc(samplesheet, cell.type.reference=cell.type.reference, verbose=T)
+```
+
+Create the QC report.
+```{r,message=F,results="hide"}
+qc.summary <- meffil.qc.summary(qc.objects, verbose=T)
+meffil.qc.report(qc.summary,
+                 output.file=qc.file,
+                 author=author,
+                 study=study)
+````
+
+Remove any samples with too many bad probes.
+```{r}
+if (nrow(qc.summary$bad.samples) > 0)
+    qc.objects <- meffil.remove.samples(qc.objects, qc.summary$bad.samples$sample.name)
+```
+
+Check how many principal components to include.
+```{r, dev="CairoPNG"}
+print(meffil.plot.pc.fit(qc.objects)$plot)
+```
+
+Normalize sample quantiles in preparation for 
+```{r}
+norm.objects <- meffil.normalize.quantiles(qc.objects, number.pcs=number.pcs, verbose=T)
+```
+
+Normalize the dataset using the normalized quantiles.
+```{r comparison-meffil-samples, cache=T}
+norm.meffil <- meffil.normalize.samples(norm.objects,
+                                        just.beta=F, 
+                                        cpglist.remove=qc.summary$bad.cpgs$name,
+                                        verbose=T)
+```
+
+```{r}
+beta.meffil <- meffil.get.beta(norm.meffil$M, norm.meffil$U)
+```
+
+Compute principal components of the normalized methylation matrix.
+```{r comparison-meffil-pcs, cache=T}
+pcs <- meffil.methylation.pcs(beta.meffil, sites=meffil.get.autosomal.sites("450k"), verbose=T)
+```
+
+Generate a normalization report.
+```{r,message=F,results="hide"}
+parameters <- meffil.normalization.parameters(norm.objects)
+parameters$batch.threshold <- 0.01
+norm.summary <- meffil.normalization.summary(norm.objects=norm.objects, pcs=pcs, parameters=parameters, verbose=T)
+meffil.normalization.report(norm.summary,
+                            output.file=norm.file,
+                            author=author,
+                            study=study)
+```
+
+
+## Compare normalizations
+
+First make sure that the raw data is the same.
+```{r}
+raw.meffil <- meffil:::read.rg(samplesheet$Basename[1])
+all(raw.meffil$R == getRed(raw.minfi)[names(raw.meffil$R),1])
+```
+
+## Comparison of object sizes
+
+```{r}
+print(object.size(qc.objects), units="Mb")
+print(object.size(norm.objects), units="Mb")
+print(object.size(norm.minfi), units="Mb")
+print(object.size(raw.minfi), units="Mb")
+```
+
+### Background correction
+
+Apply `meffil` background correction.
+```{r, results='hide'}
+probes <- meffil.probe.info("450k")
+bc.meffil <- meffil:::background.correct(raw.meffil,probes)
+M.meffil <- meffil:::rg.to.mu(bc.meffil,probes)$M
+```
+
+Apply `minfi` background correction.
+```{r, results='hide'}
+bc.minfi <- preprocessNoob(raw.minfi, dyeCorr = FALSE)
+M.minfi <- getMeth(bc.minfi)[names(M.meffil),1]
+```
+
+Compare results, should be identical.
+```{r}
+quantile(M.meffil - M.minfi)
+```
+
+### Dye bias correction
+Apply `meffil` correction.
+```{r, results='hide'}
+dye.meffil <- meffil:::dye.bias.correct(bc.meffil, probes,
+                                        intensity=norm.objects[[1]]$reference.intensity)
+M.meffil <- meffil:::rg.to.mu(dye.meffil,probes)$M
+U.meffil <- meffil:::rg.to.mu(dye.meffil,probes)$U
+```
+
+Apply `minfi` background and dye bias correction.
+```{r, results='hide'}
+dye.minfi <- preprocessNoob(raw.minfi, dyeCorr = TRUE)
+M.minfi <- getMeth(dye.minfi)[names(M.meffil),1]
+U.minfi <- getUnmeth(dye.minfi)[names(U.meffil),1]
+```
+
+Compare results, should be identical.
+```{r}
+quantile(M.meffil - M.minfi)
+quantile(U.meffil - U.minfi)
+quantile(M.meffil/(M.meffil+U.meffil+100) - M.minfi/(M.minfi+U.minfi+100))
+```
+
+### Control matrix extracted
+
+Extract `minfi` control matrix.
+```{r, results='hide'}
+library(matrixStats, quietly=TRUE)
+control.matrix.minfi <- minfi:::.buildControlMatrix450k(minfi:::.extractFromRGSet450k(raw.minfi))
+```
+
+Control matrix for `meffil` was extracted earlier.
+Preprocess the matrix using the same procedure used by `minfi`.
+```{r, results='hide'}
+control.matrix.meffil <- meffil.control.matrix(norm.objects)
+control.matrix.meffil <- scale(control.matrix.meffil)
+control.matrix.meffil[control.matrix.meffil > 3] <- 3
+control.matrix.meffil[control.matrix.meffil < -3] <- -3
+control.matrix.meffil <- scale(control.matrix.meffil)
+```
+
+The control variable order (columns) may be different between `minfi` and `meffil`
+so they are reordered.
+```{r}
+i <- apply(control.matrix.minfi,2,function(v) {
+    which.min(apply(control.matrix.meffil,2,function(w) {
+        sum(abs(v-w))
+    }))
+})
+control.matrix.meffil <- control.matrix.meffil[,i]
+```
+
+Compare resulting matrices, should be identical.
+```{r}
+quantile(control.matrix.meffil - control.matrix.minfi)
+```
+
+### Final beta values
+
+```{r}
+beta.minfi <- getBeta(norm.minfi)
+quantile(beta.meffil - beta.minfi[rownames(beta.meffil),])
+```
+
+On what chromosomes are the biggest differences appearing?
+```{r}
+features <- meffil.get.features("450k")
+sites <- features[which(features$target == "methylation"),]
+site.chromosome <- sites$chr[match(rownames(beta.meffil), sites$name)]
+sex <- sapply(norm.objects, function(object) object$predicted.sex)
+is.diff <- abs(beta.meffil - beta.minfi[rownames(beta.meffil),]) > 1e-4
+table(site.chromosome[which(is.diff, arr.ind=T)[,"row"]])
+table(site.chromosome[which(is.diff[,which(sex=="M")], arr.ind=T)[,"row"]])
+table(site.chromosome[which(is.diff[,which(sex=="F")], arr.ind=T)[,"row"]])
+```
+These results are not surprising
+because chromosome Y not handled like `minfi` in either males or females, 
+and chromosome X is handled just like `minfi` in females but not in males.
+
+```{r}
+autosomal.sites <- intersect(meffil.get.autosomal.sites("450k"), rownames(beta.meffil))
+quantile(beta.meffil[autosomal.sites,] - beta.minfi[autosomal.sites,],na.rm=T)
+```
+
+These are small differences relative to differences with unormalized data:
+```{r}
+beta.raw <- getBeta(raw.minfi)
+quantile(beta.meffil[autosomal.sites,] - beta.raw[autosomal.sites,], na.rm=T)
+quantile(beta.minfi[autosomal.sites,] - beta.raw[autosomal.sites,], na.rm=T)
+```
+
+In spite of the differences, CG correlations between methods are pretty close to 1.
+```{r}
+male.idx <- which(rowSums(is.diff[,sex=="M"]) >= 5)
+male.cg.r <- unlist(mclapply(male.idx, function(idx) {
+    cor(beta.meffil[idx, sex=="M"], beta.minfi[rownames(beta.meffil)[idx], sex=="M"])
+}))
+quantile(male.cg.r, probs=c(0.05,0.1,0.25,0.5))
+
+female.idx <- which(rowSums(is.diff[,sex=="F"]) > 0)
+female.cg.r <- sapply(female.idx[1:200], function(idx) {
+    cor(beta.meffil[idx, sex=="F"], beta.minfi[rownames(beta.meffil)[idx], sex=="F"])
+})
+quantile(female.cg.r, probs=c(0.05,0.1,0.25, 0.5))
+```
+
+## Sex
+
+```{r}
+sex.minfi <- as.data.frame(getSex(norm.minfi))
+names(norm.objects) <- sapply(norm.objects, function(obj) basename(obj$basename))
+sex.meffil <- data.frame(predicted=sapply(norm.objects, function(obj) obj$predicted.sex),
+                         x.signal=sapply(norm.objects, function(obj) obj$x.signal),
+                         y.signal=sapply(norm.objects, function(obj) obj$y.signal))
+all(sex.minfi[rownames(sex.meffil),"predictedSex"] == sex.meffil$predicted)
+quantile(sex.minfi[rownames(sex.meffil),"xMed"] - sex.meffil$x.signal)
+quantile(sex.minfi[rownames(sex.meffil),"yMed"] - sex.meffil$y.signal)
+```
+
+## Cell count estimates
+
+```{r, results="hide"}
+counts.meffil <- t(meffil.cell.count.estimates(norm.objects))
+```
+
+```{r, results="hide"}
+require("FlowSorted.Blood.450k")
+counts.minfi <- estimateCellCounts(raw.minfi)
+counts.minfi <- counts.minfi[rownames(counts.meffil), colnames(counts.meffil)]
+```
+
+```{r}
+sapply(rownames(counts.meffil), function(i) cor(counts.meffil[i,], counts.minfi[i,]))
+sapply(colnames(counts.meffil), function(i) cor(counts.meffil[,i], counts.minfi[,i]))
+```
+
+```{r, dev="CairoPNG"}
+for (cell.type in colnames(counts.meffil)) {
+    lim <- range(c(counts.meffil[,cell.type], counts.minfi[,cell.type]))
+    plot(counts.meffil[,cell.type], counts.minfi[,cell.type], pch=19,
+         main=cell.type,
+         sub=paste("R =", format(cor(counts.meffil[,cell.type], counts.minfi[,cell.type]), digits=3)),
+         xlim=lim,ylim=lim)
+    abline(a=0,b=1,col="red")
+}
+```
+
+```{r,results="hide"}
+counts.beta <- meffil.estimate.cell.counts.from.betas(beta.meffil, cell.type.reference)
+```
+
+```{r, dev="CairoPNG"}
+for (cell.type in colnames(counts.meffil)) {
+    lim <- range(c(counts.meffil[,cell.type], counts.beta[,cell.type]))
+    plot(counts.meffil[,cell.type], counts.beta[,cell.type], pch=19,
+         main=cell.type,
+         sub=paste("R =", format(cor(counts.meffil[,cell.type], counts.beta[,cell.type]), digits=3)),
+         xlim=lim,ylim=lim)
+    abline(a=0,b=1,col="red")
+}
+```
+
+## SNP signals
+
+```{r}
+snps.meffil <- meffil.snp.betas(qc.objects)
+snps.minfi <- getSnpBeta(raw.minfi)
+quantile(snps.meffil - snps.minfi[rownames(snps.meffil),])
+```
+

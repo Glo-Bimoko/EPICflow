@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Using <code>gdsfmt</code> for <strong>very</strong> large datasets</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<div id="toc">
+<div id="toc_header">Table of Contents</div>
+<ul>
+<li>
+<a href="#toc_0">Using &lt;code&gt;gdsfmt&lt;/code&gt; for &lt;strong&gt;very&lt;/strong&gt; large datasets</a>
+<ul>
+<li>
+<a href="#toc_1">Download example data set</a>
+</li>
+<li>
+<a href="#toc_2">Normalize dataset</a>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+
+
+<h1 id="toc_0">Using <code>gdsfmt</code> for <strong>very</strong> large datasets</h1>
+
+<h2 id="toc_1">Download example data set</h2>
+
+<blockquote>
+<p>Sen A, Cingolani P, Senut MC, Land S et al. Lead exposure induces
+changes in 5-hydroxymethylcytosine clusters in CpG islands in human
+embryonic stem cells and umbilical cord blood. Epigenetics
+2015;10(7):607-21. PMID: 26046694</p>
+</blockquote>
+
+<p>Retrieve the data from the Gene Expression Omnibus (GEO) website
+(<a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69633">http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69633</a>).</p>
+
+<pre><code class="r">download.450k.lead.dataset &lt;- function() {
+    dir.create(path &lt;- &quot;data-450k-lead&quot;)
+
+    if (length(list.files(path, &quot;*.idat$&quot;)) == 0) {
+        filename &lt;-  file.path(path, &quot;gse69633.tar&quot;)
+        download.file(&quot;http://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE69633&amp;format=file&quot;, filename)
+        cat(date(), &quot;Extracting files from GEO archive.\n&quot;)
+        system(paste(&quot;cd&quot;, path, &quot;;&quot;, &quot;tar xvf&quot;, basename(filename)))
+        unlink(filename)
+        cat(date(), &quot;Unzipping IDAT files.\n&quot;)
+        system(paste(&quot;cd&quot;, path, &quot;;&quot;, &quot;gunzip *.idat.gz&quot;))
+
+        library(GEOquery)
+        geo &lt;- getGEO(&quot;GSE69633&quot;, GSEMatrix=F)
+        ## this output from geo is really messed up.
+        xx &lt;- lapply(geo@gsms, function(x) x@header)
+        characteristics &lt;- t(sapply(xx, function(x) x$characteristics_ch1))
+        colnames(characteristics) &lt;- sub(&quot;([^:]+):.*&quot;, &quot;\\1&quot;, characteristics[1,])
+        rownames(characteristics) &lt;- names(xx)
+        characteristics &lt;- apply(characteristics, 2, function(x) sub(&quot;[^:]+: (.*)&quot;, &quot;\\1&quot;, x))
+        characteristics &lt;- as.data.frame(characteristics, stringsAsFactors=F)
+        for (name in c(&quot;socioeconomic score&quot;, &quot;gestational age&quot;, &quot;birth weight&quot;, &quot;pbconc (ng/dl)&quot;))
+            characteristics[[name]] &lt;- as.numeric(characteristics[[name]])
+        write.csv(characteristics, file=file.path(path, &quot;samples.csv&quot;))
+    }
+
+    path
+}
+</code></pre>
+
+<pre><code class="r">path &lt;- download.450k.lead.dataset()
+</code></pre>
+
+<h2 id="toc_2">Normalize dataset</h2>
+
+<p>Create samplesheet</p>
+
+<pre><code class="r">library(meffil)
+</code></pre>
+
+<pre><code class="r">options(mc.cores=10)
+samplesheet &lt;- meffil.create.samplesheet(path)
+
+samples &lt;- read.csv(file.path(path, &quot;samples.csv&quot;), check.names=F, row.names=1)
+samplesheet &lt;- data.frame(
+    samplesheet,
+    samples[match(samplesheet$Sample_Name, rownames(samples)),],
+    stringsAsFactors=F, check.names=F)
+
+samplesheet &lt;- samplesheet[which(samplesheet[[&quot;sample type&quot;]] == &quot;HM450K&quot;),]
+</code></pre>
+
+<p>Parameters.</p>
+
+<pre><code class="r">qc.file &lt;- &quot;gds/qc-report.html&quot;
+author &lt;- &quot;Sen, et al.&quot;
+study &lt;- &quot;Cord blood DNA methylation and lead exposure (GSE69633)&quot;
+norm.file &lt;- &quot;gds/normalization-report.html&quot;
+cell.type.reference &lt;- &quot;gervin and lyle cord blood&quot;
+</code></pre>
+
+<p>Generate QC objects for each sample and QC report.</p>
+
+<pre><code class="r">qc.objects &lt;- meffil.qc(
+    samplesheet,
+    cell.type.reference=cell.type.reference,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [read.idat] Thu Sep 30 15:30:42 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Grn.idat 
+## [read.idat] Thu Sep 30 15:30:43 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Red.idat 
+## [extract.detection.pvalues] Thu Sep 30 15:30:44 2021  
+## [extract.beadnum] Thu Sep 30 15:30:46 2021  
+## [extract.snp.betas] Thu Sep 30 15:30:49 2021  
+## [extract.controls] Thu Sep 30 15:30:49 2021  
+## [background.correct] Thu Sep 30 15:30:50 2021 background correction for dye = R 
+## [background.correct] Thu Sep 30 15:30:52 2021 background correction for dye = G 
+## [dye.bias.correct] Thu Sep 30 15:30:54 2021  
+## [FUN] Thu Sep 30 15:30:57 2021 predicting sex
+</code></pre>
+
+<pre><code class="r">qc.summary &lt;- meffil.qc.summary(qc.objects, verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.qc.summary] Thu Sep 30 15:33:30 2021 Sex summary TRUE 
+## [meffil.qc.summary] Thu Sep 30 15:33:30 2021 Meth vs unmeth summary 
+## [meffil.qc.summary] Thu Sep 30 15:33:30 2021 Control means summary 
+## [meffil.qc.summary] Thu Sep 30 15:33:30 2021 Sample detection summary 
+## [meffil.qc.summary] Thu Sep 30 15:33:31 2021 CpG detection summary 
+## [meffil.qc.summary] Thu Sep 30 15:33:31 2021 Sample bead numbers summary 
+## [meffil.qc.summary] Thu Sep 30 15:33:33 2021 CpG bead numbers summary 
+## [meffil.qc.summary] Thu Sep 30 15:33:33 2021 Cell count summary 
+## [meffil.qc.summary] Thu Sep 30 15:33:34 2021 Genotype concordance
+</code></pre>
+
+<pre><code class="r">meffil.qc.report(
+    qc.summary,
+    output.file=qc.file,
+    author=author,
+    study=study)
+</code></pre>
+
+<pre><code>## [meffil.qc.report] Thu Sep 30 15:33:34 2021 Writing report as html file to gds/qc-report.html
+</code></pre>
+
+<p>Remove any low quality samples.</p>
+
+<pre><code class="r">if (nrow(qc.summary$bad.samples) &gt; 0)
+    qc.objects &lt;- meffil.remove.samples(
+        qc.objects,
+        qc.summary$bad.samples$sample.name)
+
+samplesheet &lt;- samplesheet[match(names(qc.objects), rownames(samplesheet)),]
+</code></pre>
+
+<p>Check how many principal components to include.</p>
+
+<pre><code class="r">print(meffil.plot.pc.fit(qc.objects, n.cross=3)$plot)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk unnamed-chunk-6"/></p>
+
+<p>Ten seems about right.</p>
+
+<pre><code class="r">number.pcs &lt;- 10
+</code></pre>
+
+<p>Normalize the dataset.</p>
+
+<pre><code class="r">norm.objects &lt;- meffil.normalize.quantiles(
+    qc.objects,
+    number.pcs=number.pcs,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.normalize.quantiles] Thu Sep 30 15:34:11 2021 selecting dye correction reference 
+## [meffil.normalize.quantiles] Thu Sep 30 15:34:11 2021 creating control matrix 
+## [meffil.normalize.quantiles] Thu Sep 30 15:34:11 2021 normalizing quantiles 
+## [FUN] Thu Sep 30 15:34:11 2021 genomic.iG M 
+## [FUN] Thu Sep 30 15:34:11 2021 genomic.iG U 
+## [FUN] Thu Sep 30 15:34:11 2021 genomic.iR M 
+## [FUN] Thu Sep 30 15:34:11 2021 genomic.iR U 
+## [FUN] Thu Sep 30 15:34:11 2021 genomic.ii M 
+## [FUN] Thu Sep 30 15:34:11 2021 genomic.ii U 
+## [FUN] Thu Sep 30 15:34:12 2021 autosomal.iG M 
+## [FUN] Thu Sep 30 15:34:12 2021 autosomal.iG U 
+## [FUN] Thu Sep 30 15:34:12 2021 autosomal.iR M 
+## [FUN] Thu Sep 30 15:34:12 2021 autosomal.iR U 
+## [FUN] Thu Sep 30 15:34:12 2021 autosomal.ii M 
+## [FUN] Thu Sep 30 15:34:12 2021 autosomal.ii U 
+## [FUN] Thu Sep 30 15:34:12 2021 not.y.iG M 
+## [FUN] Thu Sep 30 15:34:12 2021 not.y.iG U 
+## [FUN] Thu Sep 30 15:34:12 2021 not.y.iR M 
+## [FUN] Thu Sep 30 15:34:12 2021 not.y.iR U 
+## [FUN] Thu Sep 30 15:34:13 2021 not.y.ii M 
+## [FUN] Thu Sep 30 15:34:13 2021 not.y.ii U 
+## [FUN] Thu Sep 30 15:34:13 2021 sex M 
+## [FUN] Thu Sep 30 15:34:13 2021 sex U 
+## [FUN] Thu Sep 30 15:34:13 2021 chrx M 
+## [FUN] Thu Sep 30 15:34:13 2021 chrx U 
+## [FUN] Thu Sep 30 15:34:13 2021 chry M 
+## [FUN] Thu Sep 30 15:34:13 2021 chry U
+</code></pre>
+
+<pre><code class="r">beta &lt;- meffil.normalize.samples(
+    norm.objects,
+    just.beta=T,
+    remove.poor.signal=T,
+    cpglist.remove=qc.summary$bad.cpgs$name,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [read.idat] Thu Sep 30 15:34:14 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Grn.idat 
+## [read.idat] Thu Sep 30 15:34:14 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Red.idat 
+## [background.correct] Thu Sep 30 15:34:14 2021 background correction for dye = R 
+## [background.correct] Thu Sep 30 15:34:15 2021 background correction for dye = G 
+## [dye.bias.correct] Thu Sep 30 15:34:17 2021  
+## [meffil.normalize.sample] Thu Sep 30 15:34:18 2021 Normalizing methylated and unmethylated signals.
+</code></pre>
+
+<p>Normalize while saving to a GDS file.</p>
+
+<pre><code class="r">dir.create(&quot;gds&quot;)
+gds.filename &lt;- &quot;gds/beta.gds&quot;
+if (!file.exists(gds.filename)) 
+    meffil.normalize.samples(
+        norm.objects,
+        just.beta=T,
+        remove.poor.signal=T,
+        cpglist.remove=qc.summary$bad.cpgs$name,
+        gds.filename=gds.filename,
+        verbose=T)
+</code></pre>
+
+<p>Load the matrix in the GDS file for comparison.</p>
+
+<pre><code class="r">beta.gds &lt;- meffil.gds.methylation(gds.filename)
+</code></pre>
+
+<p>It should be the same as the one generated the standard way.</p>
+
+<pre><code class="r">identical(beta.gds, beta)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">identical(colnames(beta.gds), colnames(beta))
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">identical(rownames(beta.gds), rownames(beta))
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>Save detection p-values to a GDS file.</p>
+
+<pre><code class="r">detp.filename &lt;- &quot;gds/detp.gds&quot;
+if (!file.exists(detp.filename))
+    meffil.save.detection.pvalues(qc.objects, detp.filename, verbose=T)
+</code></pre>
+
+<p>Compare detection p-values to loading them to a matrix from QC objects.</p>
+
+<pre><code class="r">detp.gds &lt;- meffil.gds.detection.pvalues(detp.filename)
+detp &lt;- meffil.load.detection.pvalues(qc.objects)
+identical(detp, detp.gds)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>Verify that correct signals have been set to missing
+in the methylation matrix.</p>
+
+<pre><code class="r">idx &lt;- which(
+    detp[rownames(beta.gds), colnames(beta.gds)]
+    &gt;
+    qc.objects[[1]]$bad.probes.detectionp.threshold)
+all(is.na(beta.gds[idx]))
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>We can load a subset from the GDS file as well:</p>
+
+<pre><code class="r">bw.sites &lt;- c(
+    &quot;cg20076442&quot;, &quot;cg25953130&quot;, &quot;cg04521626&quot;, &quot;cg14097568&quot;,
+    &quot;cg17133774&quot;, &quot;cg00654448&quot;, &quot;cg00442282&quot;, &quot;cg13696490&quot;,
+    &quot;cg12044213&quot;, &quot;cg08817867&quot;, &quot;cg00382138&quot;, &quot;cg06870470&quot;,
+    &quot;cg25557739&quot;, &quot;cg24324628&quot;, &quot;cg15783941&quot;, &quot;cg14597739&quot;,
+    &quot;cg22962123&quot;, &quot;cg05851442&quot;, &quot;cg23387597&quot;, &quot;cg24973755&quot;,
+    &quot;cg16219283&quot;, &quot;cg25799241&quot;, &quot;cg06658067&quot;)
+## PMID: 25869828 (bonferroni p &lt; 0.05)
+samples &lt;- colnames(beta)[c(1,3,5,7)]
+sub.gds &lt;- meffil.gds.methylation(gds.filename, bw.sites, samples)
+</code></pre>
+
+<p>It should be the same as subsetting the matrix.</p>
+
+<pre><code class="r">quantile(beta[bw.sites,samples] - sub.gds, na.rm=T)
+</code></pre>
+
+<pre><code>##   0%  25%  50%  75% 100% 
+##    0    0    0    0    0
+</code></pre>
+
+<pre><code class="r">identical(colnames(sub.gds), samples)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">identical(rownames(sub.gds), bw.sites)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>Compute principal components for the normalization report.</p>
+
+<pre><code class="r">pcs &lt;- meffil.methylation.pcs(beta, winsorize.pct=NA, outlier.iqr.factor=3)
+pcs.gds &lt;- meffil.methylation.pcs(gds.filename, winsorize.pct=NA, outlier.iqr.factor=3)
+</code></pre>
+
+<p>The resulting components are exactly the same.</p>
+
+<pre><code class="r">identical(pcs.gds, pcs)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>Run an EWAS from beta matrix or from GDS file:</p>
+
+<pre><code class="r">variable.name &lt;- &quot;birth weight&quot;
+variable &lt;- samplesheet[[variable.name]]
+covariates &lt;- data.frame(
+    t(meffil.cell.count.estimates(qc.objects)),
+    samplesheet[,c(&quot;socioeconomic score&quot;,&quot;gender&quot;,&quot;smoke ever&quot;,
+                   &quot;gestational age&quot;,&quot;pbconc (ng/dl)&quot;)],
+    stringsAsFactors=F)
+
+## restrict to autosomal CpG sites as both males and females in dataset
+auto.sites &lt;- meffil.get.autosomal.sites(&quot;450k&quot;)
+
+## from beta matrix
+ewas.ret &lt;- meffil.ewas(
+    beta,
+    variable=variable, covariates=covariates,
+    sites=auto.sites,
+    isva=F, sva=F, smartsva=T,
+    n.sv=10,
+    winsorize.pct=NA, outlier.iqr.factor=3,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas] Thu Sep 30 15:43:19 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Thu Sep 30 15:43:19 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Thu Sep 30 15:43:19 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Thu Sep 30 15:43:19 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Thu Sep 30 15:43:20 2021 Calculating CpG variance 
+## [add.surrogate.variables] Thu Sep 30 15:45:11 2021 smartSVA. 
+## 
+## [meffil.ewas] Thu Sep 30 15:45:12 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Thu Sep 30 15:45:13 2021 Handling methylation outliers 
+## [FUN] Thu Sep 30 15:46:52 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:46:52 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:46:52 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:47:50 2021 Empirical Bayes 
+## [FUN] Thu Sep 30 15:47:57 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:47:57 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:47:57 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:49:09 2021 Empirical Bayes 
+## [FUN] Thu Sep 30 15:49:21 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:49:21 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:49:21 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 15:50:43 2021 Empirical Bayes 
+## [meffil.ewas] Thu Sep 30 15:51:06 2021 Finished EWAS.
+</code></pre>
+
+<pre><code class="r">## from GDS file
+ewas.gds &lt;- meffil.ewas(
+    gds.filename,
+    variable=variable, covariates=covariates,
+    sites=auto.sites,
+    isva=F, sva=F, smartsva=T,
+    n.sv=10,
+    winsorize.pct=NA, outlier.iqr.factor=3,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas] Thu Sep 30 15:51:06 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Thu Sep 30 15:51:06 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Thu Sep 30 15:51:06 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Thu Sep 30 15:51:06 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Thu Sep 30 15:51:07 2021 Calculating CpG variance 
+## [add.surrogate.variables] Thu Sep 30 15:56:02 2021 smartSVA. 
+## 
+## [meffil.ewas] Thu Sep 30 15:56:04 2021 Starting EWAS ... 
+## [meffil.ewas] Thu Sep 30 16:02:46 2021 Finished EWAS.
+</code></pre>
+
+<p>Verify that we evaluated only autosomal CpG sites.</p>
+
+<pre><code class="r">length(setdiff(rownames(ewas.gds$analyses$smartsva$table), auto.sites))==0
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>We obtain similar but not identical results
+because <code>limma</code> is used to test associations using the beta matrix
+and, because <code>limma</code> requires access to the entire matrix,
+<code>glm</code> is used to test associations using the GDS file.</p>
+
+<pre><code class="r">sapply(names(ewas.ret$analyses), function(model) {
+    cor(ewas.ret$analyses[[model]]$table[,&quot;coefficient&quot;],
+        ewas.gds$analyses[[model]]$table[,&quot;coefficient&quot;], use=&quot;p&quot;)
+})
+</code></pre>
+
+<pre><code>##     none      all smartsva 
+##        1        1        1
+</code></pre>
+
+<pre><code class="r">sapply(names(ewas.ret$analyses), function(model) {
+    table(matrix=ewas.ret$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5,
+          gds=ewas.gds$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5)
+}, simplify=F)
+</code></pre>
+
+<pre><code>## $none
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 473725      0
+##   TRUE       0      2
+## 
+## $all
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 473723      2
+##   TRUE       0      2
+## 
+## $smartsva
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 473722      2
+##   TRUE       0      3
+</code></pre>
+
+<p>Is there some evidence of replicating previously
+identified associations with birth weight?</p>
+
+<pre><code class="r">sapply(ewas.ret$analyses,
+       function(obj) quantile(obj$table[bw.sites,&quot;p.value&quot;]))
+</code></pre>
+
+<pre><code>##              none         all    smartsva
+## 0%   0.0004026113 0.003710946 0.001720293
+## 25%  0.0501710713 0.104000730 0.163027844
+## 50%  0.1816655006 0.541913053 0.458828053
+## 75%  0.3811988178 0.722567452 0.782721074
+## 100% 0.8421397063 0.994666139 0.982522540
+</code></pre>
+
+<pre><code class="r">sapply(ewas.gds$analyses,
+       function(obj) quantile(obj$table[bw.sites,&quot;p.value&quot;]))
+</code></pre>
+
+<pre><code>##              none         all   smartsva
+## 0%   0.0004747239 0.004331558 0.00216657
+## 25%  0.0531554832 0.110540662 0.17492445
+## 50%  0.1873995401 0.548843365 0.47209430
+## 75%  0.3874028134 0.727362185 0.78838397
+## 100% 0.8441400700 0.994763187 0.98298543
+</code></pre>
+
+<p>Generate the EWAS report using either the beta matrix or the GDS file.</p>
+
+<pre><code class="r">ewas.parameters &lt;- meffil.ewas.parameters(max.plots=10)
+
+## using the beta matrix
+summary.ret &lt;- meffil.ewas.summary(
+    ewas.ret,
+    beta,
+    selected.cpg.sites=bw.sites,
+    parameters=ewas.parameters, verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas.summary] Thu Sep 30 16:03:22 2021 QQ plots 
+## [meffil.ewas.summary] Thu Sep 30 16:03:56 2021 Manhattan plots 
+## [meffil.ewas.summary] Thu Sep 30 16:03:59 2021 CpG site plots: 33 
+## [FUN] Thu Sep 30 16:03:59 2021 Plotting cg12050271 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg01916115 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg02423817 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg25256924 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg14009561 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg08284496 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg14263391 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg20082877 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg01700462 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg11173131 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg20076442 
+## [FUN] Thu Sep 30 16:04:04 2021 Plotting cg25953130 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg04521626 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg14097568 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg17133774 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg00654448 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg00442282 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg13696490 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg12044213 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg08817867 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg00382138 
+## [FUN] Thu Sep 30 16:04:05 2021 Plotting cg06870470 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg25557739 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg24324628 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg15783941 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg14597739 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg22962123 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg05851442 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg23387597 
+## [FUN] Thu Sep 30 16:04:06 2021 Plotting cg24973755 
+## [FUN] Thu Sep 30 16:04:07 2021 Plotting cg16219283 
+## [FUN] Thu Sep 30 16:04:07 2021 Plotting cg25799241 
+## [FUN] Thu Sep 30 16:04:07 2021 Plotting cg06658067 
+## [meffil.ewas.summary] Thu Sep 30 16:04:07 2021 Sample characteristics 
+## [meffil.ewas.sample.characteristics] Thu Sep 30 16:04:07 2021 summarizing variables 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 variable of interest 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 Bcell 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 CD14 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 CD4T 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 CD8T 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 Gran 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 NK 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 socioeconomic.score 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 gender 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 smoke.ever 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 gestational.age 
+## [summarize.variable] Thu Sep 30 16:04:07 2021 pbconc..ng.dl. 
+## [meffil.ewas.covariate.associations] Thu Sep 30 16:04:07 2021 covariate associations 
+## [FUN] Thu Sep 30 16:04:07 2021 Bcell 
+## [FUN] Thu Sep 30 16:04:07 2021 CD14 
+## [FUN] Thu Sep 30 16:04:07 2021 CD4T 
+## [FUN] Thu Sep 30 16:04:07 2021 CD8T 
+## [FUN] Thu Sep 30 16:04:07 2021 Gran 
+## [FUN] Thu Sep 30 16:04:07 2021 NK 
+## [FUN] Thu Sep 30 16:04:07 2021 socioeconomic.score 
+## [FUN] Thu Sep 30 16:04:07 2021 gender 
+## [FUN] Thu Sep 30 16:04:07 2021 smoke.ever 
+## [FUN] Thu Sep 30 16:04:07 2021 gestational.age 
+## [FUN] Thu Sep 30 16:04:07 2021 pbconc..ng.dl.
+</code></pre>
+
+<pre><code class="r">meffil.ewas.report(summary.ret,
+                   output.file=&quot;gds/ewas.html&quot;,
+                   author=&quot;Me&quot;,
+                   study=paste(variable.name,
+                       &quot;in cord blood DNA methylation (GEO:GSE69633)&quot;))
+</code></pre>
+
+<pre><code>## [meffil.ewas.report] Thu Sep 30 16:04:07 2021 Writing report as html file to gds/ewas.html
+</code></pre>
+
+<pre><code class="r">## or using the GDS file
+summary.gds &lt;- meffil.ewas.summary(
+    ewas.gds,
+    gds.filename,
+    selected.cpg.sites=bw.sites,
+    parameters=ewas.parameters, verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas.summary] Thu Sep 30 16:06:22 2021 QQ plots 
+## [meffil.ewas.summary] Thu Sep 30 16:06:51 2021 Manhattan plots 
+## [meffil.ewas.summary] Thu Sep 30 16:06:54 2021 CpG site plots: 33 
+## [FUN] Thu Sep 30 16:07:30 2021 Plotting cg12050271 
+## [FUN] Thu Sep 30 16:07:30 2021 Plotting cg01916115 
+## [FUN] Thu Sep 30 16:07:30 2021 Plotting cg07910050 
+## [FUN] Thu Sep 30 16:07:30 2021 Plotting cg02423817 
+## [FUN] Thu Sep 30 16:07:30 2021 Plotting cg25256924 
+## [FUN] Thu Sep 30 16:07:30 2021 Plotting cg14009561 
+## [FUN] Thu Sep 30 16:07:30 2021 Plotting cg08284496 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg14263391 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg01700462 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg11173131 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg20076442 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg25953130 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg04521626 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg14097568 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg17133774 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg00654448 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg00442282 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg13696490 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg12044213 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg08817867 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg00382138 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg06870470 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg25557739 
+## [FUN] Thu Sep 30 16:07:31 2021 Plotting cg24324628 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg15783941 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg14597739 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg22962123 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg05851442 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg23387597 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg24973755 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg16219283 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg25799241 
+## [FUN] Thu Sep 30 16:07:32 2021 Plotting cg06658067 
+## [meffil.ewas.summary] Thu Sep 30 16:07:32 2021 Sample characteristics 
+## [meffil.ewas.sample.characteristics] Thu Sep 30 16:07:32 2021 summarizing variables 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 variable of interest 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 Bcell 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 CD14 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 CD4T 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 CD8T 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 Gran 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 NK 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 socioeconomic.score 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 gender 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 smoke.ever 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 gestational.age 
+## [summarize.variable] Thu Sep 30 16:07:32 2021 pbconc..ng.dl. 
+## [meffil.ewas.covariate.associations] Thu Sep 30 16:07:32 2021 covariate associations 
+## [FUN] Thu Sep 30 16:07:32 2021 Bcell 
+## [FUN] Thu Sep 30 16:07:32 2021 CD14 
+## [FUN] Thu Sep 30 16:07:32 2021 CD4T 
+## [FUN] Thu Sep 30 16:07:32 2021 CD8T 
+## [FUN] Thu Sep 30 16:07:32 2021 Gran 
+## [FUN] Thu Sep 30 16:07:32 2021 NK 
+## [FUN] Thu Sep 30 16:07:32 2021 socioeconomic.score 
+## [FUN] Thu Sep 30 16:07:32 2021 gender 
+## [FUN] Thu Sep 30 16:07:32 2021 smoke.ever 
+## [FUN] Thu Sep 30 16:07:32 2021 gestational.age 
+## [FUN] Thu Sep 30 16:07:32 2021 pbconc..ng.dl.
+</code></pre>
+
+<pre><code class="r">meffil.ewas.report(summary.gds,
+                   output.file=&quot;gds/ewas-gds.html&quot;,
+                   author=&quot;Me&quot;,
+                   study=paste(variable.name,
+                       &quot;in cord blood DNA methylation (GEO:GSE69633)&quot;))
+</code></pre>
+
+<pre><code>## [meffil.ewas.report] Thu Sep 30 16:07:32 2021 Writing report as html file to gds/ewas-gds.html
+</code></pre>
+
+<p>Robust linear regression in EWAS is also possible.
+When analysing the beta matrix, we test associations
+using <code>limma::lmFit</code> with the &#39;robust&#39; option
+which applies <code>MASS::rlm</code> to each CpG site.
+When analysing the GDS file, we similarly
+test associations  using <code>MASS::rlm</code>
+and then
+calculate statistical significance using <code>lmtest::coeftest</code>
+with <code>vcov=sandwich::vcovHC(fit, type=&quot;HC0&quot;)</code>.</p>
+
+<pre><code class="r">## from matrix
+robust.ret &lt;- meffil.ewas(
+    beta,
+    variable=variable, covariates=covariates,
+    sites=auto.sites,
+    isva=F, sva=F, smartsva=T,
+    n.sv=10,
+    rlm=T,
+    winsorize.pct=NA, outlier.iqr.factor=3,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas] Thu Sep 30 16:18:09 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Thu Sep 30 16:18:09 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Thu Sep 30 16:18:09 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Thu Sep 30 16:18:09 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Thu Sep 30 16:18:09 2021 Calculating CpG variance 
+## [add.surrogate.variables] Thu Sep 30 16:19:58 2021 smartSVA. 
+## 
+## [meffil.ewas] Thu Sep 30 16:20:00 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Thu Sep 30 16:20:00 2021 Handling methylation outliers 
+## [FUN] Thu Sep 30 16:21:41 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 16:21:41 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 16:21:41 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 16:35:21 2021 Empirical Bayes 
+## [FUN] Thu Sep 30 16:35:27 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 16:35:27 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 16:35:27 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 17:00:19 2021 Empirical Bayes 
+## [FUN] Thu Sep 30 17:00:31 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 17:00:31 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 17:00:31 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 17:40:39 2021 Empirical Bayes 
+## [meffil.ewas] Thu Sep 30 17:41:01 2021 Finished EWAS.
+</code></pre>
+
+<pre><code class="r">## from GDS file
+robust.gds &lt;- meffil.ewas(
+    gds.filename,
+    variable=variable, covariates=covariates,
+    sites=auto.sites,
+    isva=F, sva=F, smartsva=T,
+    n.sv=10,
+    rlm=T,
+    winsorize.pct=NA, outlier.iqr.factor=3,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas] Thu Sep 30 17:41:01 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Thu Sep 30 17:41:01 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Thu Sep 30 17:41:01 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Thu Sep 30 17:41:01 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Thu Sep 30 17:41:02 2021 Calculating CpG variance 
+## [add.surrogate.variables] Thu Sep 30 17:45:54 2021 smartSVA. 
+## 
+## [meffil.ewas] Thu Sep 30 17:45:56 2021 Starting EWAS ... 
+## [meffil.ewas] Thu Sep 30 18:02:16 2021 Finished EWAS.
+</code></pre>
+
+<p>As expected, results somewhat different for robust regression.</p>
+
+<pre><code class="r">sapply(names(robust.ret$analyses), function(model) {
+    cor(ewas.ret$analyses[[model]]$table[,&quot;coefficient&quot;],
+        robust.ret$analyses[[model]]$table[,&quot;coefficient&quot;], use=&quot;p&quot;)
+})
+</code></pre>
+
+<pre><code>##      none       all  smartsva 
+## 0.9685718 0.9634527 0.9456245
+</code></pre>
+
+<pre><code class="r">sapply(names(robust.ret$analyses), function(model) {
+    table(ewas=ewas.ret$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5,
+          robust=robust.ret$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5)
+},simplify=F)
+</code></pre>
+
+<pre><code>## $none
+##        robust
+## ewas     FALSE   TRUE
+##   FALSE 473698     27
+##   TRUE       0      2
+## 
+## $all
+##        robust
+## ewas     FALSE   TRUE
+##   FALSE 472932    793
+##   TRUE       0      2
+## 
+## $smartsva
+##        robust
+## ewas     FALSE   TRUE
+##   FALSE 464923   8801
+##   TRUE       0      3
+</code></pre>
+
+<p>Between the robust matrix and GDS analyses,
+coefficients identical but p-values different because
+statistical handled differently in &#39;limma&#39;. </p>
+
+<pre><code class="r">sapply(names(robust.ret$analyses), function(model) {
+    cor(robust.ret$analyses[[model]]$table[,&quot;coefficient&quot;],
+        robust.gds$analyses[[model]]$table[,&quot;coefficient&quot;], use=&quot;p&quot;)
+})
+</code></pre>
+
+<pre><code>##     none      all smartsva 
+##        1        1        1
+</code></pre>
+
+<pre><code class="r">sapply(names(robust.ret$analyses), function(model) {
+    table(matrix=robust.ret$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5,
+          gds=robust.gds$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5)
+}, simplify=F)
+</code></pre>
+
+<pre><code>## $none
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 473390    308
+##   TRUE       6     23
+## 
+## $all
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 472108    824
+##   TRUE     468    327
+## 
+## $smartsva
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 463667   1256
+##   TRUE    7427   1377
+</code></pre>
+
+<p>Finally, it is possible to perform EWAS on subsamples of the dataset.
+We&#39;ll remove some potential lead exposure outliers from analysis.</p>
+
+<pre><code class="r">pb &lt;- samplesheet[[&quot;pbconc (ng/dl)&quot;]]
+samples &lt;- samplesheet[[&quot;Sample_Name&quot;]][pb &lt; 8]
+</code></pre>
+
+<pre><code class="r">## from matrix
+sub.ret &lt;- meffil.ewas(
+    beta,
+    variable=variable, covariates=covariates,
+    sites=auto.sites,
+    samples=samples,
+    isva=F, sva=F, smartsva=T,
+    n.sv=10,
+    winsorize.pct=NA, outlier.iqr.factor=3,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas] Thu Sep 30 18:02:48 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Thu Sep 30 18:02:48 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Thu Sep 30 18:02:48 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Thu Sep 30 18:02:48 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Thu Sep 30 18:02:49 2021 Calculating CpG variance 
+## [add.surrogate.variables] Thu Sep 30 18:04:51 2021 smartSVA. 
+## 
+## [meffil.ewas] Thu Sep 30 18:04:53 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Thu Sep 30 18:04:53 2021 Handling methylation outliers 
+## [FUN] Thu Sep 30 18:06:43 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:06:43 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:06:43 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:07:55 2021 Empirical Bayes 
+## [FUN] Thu Sep 30 18:08:02 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:08:02 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:08:02 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:09:20 2021 Empirical Bayes 
+## [FUN] Thu Sep 30 18:09:34 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:09:34 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:09:34 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Thu Sep 30 18:11:15 2021 Empirical Bayes 
+## [meffil.ewas] Thu Sep 30 18:11:39 2021 Finished EWAS.
+</code></pre>
+
+<pre><code class="r">## from GDS file
+sub.gds &lt;- meffil.ewas(
+    gds.filename,
+    variable=variable, covariates=covariates,
+    sites=auto.sites,
+    samples=samples,
+    isva=F, sva=F, smartsva=T,
+    n.sv=10,
+    winsorize.pct=NA, outlier.iqr.factor=3,
+    verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.ewas] Thu Sep 30 18:11:40 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Thu Sep 30 18:11:40 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Thu Sep 30 18:11:40 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Thu Sep 30 18:11:40 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Thu Sep 30 18:11:41 2021 Calculating CpG variance 
+## [add.surrogate.variables] Thu Sep 30 18:16:26 2021 smartSVA. 
+## 
+## [meffil.ewas] Thu Sep 30 18:16:28 2021 Starting EWAS ... 
+## [meffil.ewas] Thu Sep 30 18:20:51 2021 Finished EWAS.
+</code></pre>
+
+<p>Check that the model used the correct samples.</p>
+
+<pre><code class="r">identical(samples, rownames(sub.gds$analyses$none$design))
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>Again, coefficients are identical but statistical
+significances slightly different.</p>
+
+<pre><code class="r">sapply(names(sub.ret$analyses), function(model) {
+    cor(sub.ret$analyses[[model]]$table[,&quot;coefficient&quot;],
+        sub.gds$analyses[[model]]$table[,&quot;coefficient&quot;], use=&quot;p&quot;)
+})
+</code></pre>
+
+<pre><code>##     none      all smartsva 
+##        1        1        1
+</code></pre>
+
+<pre><code class="r">sapply(names(sub.ret$analyses), function(model) {
+    table(matrix=sub.ret$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5,
+          gds=sub.gds$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5)
+}, simplify=F)
+</code></pre>
+
+<pre><code>## $none
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 473724      0
+##   TRUE       2      1
+## 
+## $all
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 473721      0
+##   TRUE       1      5
+## 
+## $smartsva
+##        gds
+## matrix   FALSE   TRUE
+##   FALSE 473715      1
+##   TRUE       2      2
+</code></pre>
+
+<p>There are only slight differences from the full dataset analysis.</p>
+
+<pre><code class="r">sapply(names(sub.gds$analyses), function(model) {
+    cor(sub.gds$analyses[[model]]$table[,&quot;coefficient&quot;],
+        ewas.gds$analyses[[model]]$table[,&quot;coefficient&quot;], use=&quot;p&quot;)
+})
+</code></pre>
+
+<pre><code>##      none       all  smartsva 
+## 0.9918069 0.9778087 0.9126206
+</code></pre>
+
+<pre><code class="r">sapply(names(sub.gds$analyses), function(model) {
+    table(sub=sub.gds$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5,
+          full=ewas.gds$analyses[[model]]$table[,&quot;p.value&quot;] &lt; 1e-5)
+}, simplify=F)
+</code></pre>
+
+<pre><code>## $none
+##        full
+## sub      FALSE   TRUE
+##   FALSE 473725      1
+##   TRUE       0      1
+## 
+## $all
+##        full
+## sub      FALSE   TRUE
+##   FALSE 473721      1
+##   TRUE       2      3
+## 
+## $smartsva
+##        full
+## sub      FALSE   TRUE
+##   FALSE 473713      4
+##   TRUE       2      1
+</code></pre>
+
+<p>It is also possible to apply a function to each CpG site
+or each sample in the dataset.</p>
+
+<pre><code class="r">v.gds &lt;- meffil.gds.apply(
+    gds.filename, bysite=T, type=&quot;double&quot;, FUN=var, na.rm=T)
+v &lt;- rowVars(beta, na.rm=T)
+all(abs(v-v.gds) &lt; 2e-16)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+</body>
+
+</html>

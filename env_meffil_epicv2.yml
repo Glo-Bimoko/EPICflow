@@ -1,0 +1,48 @@
+name: meffil_epicv2
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  # --- Core ---
+  - python=3.9
+  - r-base=4.4
+  - r-essentials
+
+  # --- Build tools ---
+  - make
+  - gcc
+  - gxx_linux-64
+  - libxml2
+  - zlib
+  - bzip2
+  - xz
+  - curl
+  - git
+
+  # --- CRAN packages ---
+  - r-devtools
+  - r-remotes
+  - r-ggplot2
+  - r-pheatmap
+  - r-dplyr
+  - r-tidyr
+  - r-reshape2
+  - r-gridextra
+  - r-knitr
+  - r-rmarkdown
+  - r-cairo
+  - r-biocmanager
+
+  # --- Bioconductor dependencies ---
+  - bioconductor-biocgenerics
+  - bioconductor-genomicranges
+  - bioconductor-summarizedexperiment
+  - bioconductor-minfi
+  - bioconductor-illuminaHumanMethylationEPICv2manifest
+  - bioconductor-illuminaHumanMethylationEPICv2anno.20a1.hg38
+
+  # --- Utilities ---
+  - pandoc
+

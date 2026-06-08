@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>EWAS using different cell type references</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<div id="toc">
+<div id="toc_header">Table of Contents</div>
+<ul>
+<li>
+<a href="#toc_0">EWAS using different cell type references</a>
+<ul>
+<li>
+<a href="#toc_1">Download example data set</a>
+</li>
+<li>
+<a href="#toc_2">Normalize dataset</a>
+</li>
+<li>
+<a href="#toc_3">Estimate cell counts using all available references</a>
+</li>
+<li>
+<a href="#toc_4">Compare counts between references</a>
+</li>
+<li>
+<a href="#toc_5">Variables of interest</a>
+</li>
+<li>
+<a href="#toc_6">Test associations</a>
+</li>
+<li>
+<a href="#toc_7">Previously identified associations</a>
+</li>
+<li>
+<a href="#toc_8">EWAS reports</a>
+</li>
+<li>
+<a href="#toc_9">Association overlaps between different analyses</a>
+</li>
+<li>
+<a href="#toc_10">Significance ranks of previously identified associations</a>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+
+
+<h1 id="toc_0">EWAS using different cell type references</h1>
+
+<h2 id="toc_1">Download example data set</h2>
+
+<blockquote>
+<p>Sen A, Cingolani P, Senut MC, Land S et al. Lead exposure induces
+changes in 5-hydroxymethylcytosine clusters in CpG islands in human
+embryonic stem cells and umbilical cord blood. Epigenetics
+2015;10(7):607-21. PMID: 26046694</p>
+</blockquote>
+
+<p>Retrieve the data from the Gene Expression Omnibus (GEO) website
+(<a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69633">http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE69633</a>).</p>
+
+<pre><code class="r">download.450k.lead.dataset &lt;- function() {
+    dir.create(path &lt;- &quot;data-450k-lead&quot;)
+
+    if (length(list.files(path, &quot;*.idat$&quot;)) == 0) {
+        filename &lt;-  file.path(path, &quot;gse69633.tar&quot;)
+        download.file(&quot;http://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE69633&amp;format=file&quot;, filename)
+        cat(date(), &quot;Extracting files from GEO archive.\n&quot;)
+        system(paste(&quot;cd&quot;, path, &quot;;&quot;, &quot;tar xvf&quot;, basename(filename)))
+        unlink(filename)
+        cat(date(), &quot;Unzipping IDAT files.\n&quot;)
+        system(paste(&quot;cd&quot;, path, &quot;;&quot;, &quot;gunzip *.idat.gz&quot;))
+
+        library(GEOquery)
+        geo &lt;- getGEO(&quot;GSE69633&quot;, GSEMatrix=F)
+        ## this output from geo is really messed up.
+        xx &lt;- lapply(geo@gsms, function(x) x@header)
+        characteristics &lt;- t(sapply(xx, function(x) x$characteristics_ch1))
+        colnames(characteristics) &lt;- sub(&quot;([^:]+):.*&quot;, &quot;\\1&quot;, characteristics[1,])
+        rownames(characteristics) &lt;- names(xx)
+        characteristics &lt;- apply(characteristics, 2, function(x) sub(&quot;[^:]+: (.*)&quot;, &quot;\\1&quot;, x))
+        characteristics &lt;- as.data.frame(characteristics, stringsAsFactors=F)
+        for (name in c(&quot;socioeconomic score&quot;, &quot;gestational age&quot;, &quot;birth weight&quot;, &quot;pbconc (ng/dl)&quot;))
+            characteristics[[name]] &lt;- as.numeric(characteristics[[name]])
+        write.csv(characteristics, file=file.path(path, &quot;samples.csv&quot;))
+    }
+
+    path
+}
+</code></pre>
+
+<pre><code class="r">path &lt;- download.450k.lead.dataset()
+</code></pre>
+
+<h2 id="toc_2">Normalize dataset</h2>
+
+<p>Create samplesheet</p>
+
+<pre><code class="r">library(meffil)
+</code></pre>
+
+<pre><code>## Loading required package: illuminaio
+</code></pre>
+
+<pre><code>## Loading required package: MASS
+</code></pre>
+
+<pre><code>## Loading required package: lmtest
+</code></pre>
+
+<pre><code>## Loading required package: zoo
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;zoo&#39;
+</code></pre>
+
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric
+</code></pre>
+
+<pre><code>## Loading required package: sandwich
+</code></pre>
+
+<pre><code>## Loading required package: limma
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;limma&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:BiocGenerics&#39;:
+## 
+##     plotMA
+</code></pre>
+
+<pre><code>## Loading required package: sva
+</code></pre>
+
+<pre><code>## Loading required package: mgcv
+</code></pre>
+
+<pre><code>## Loading required package: nlme
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;nlme&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:Biostrings&#39;:
+## 
+##     collapse
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:IRanges&#39;:
+## 
+##     collapse
+</code></pre>
+
+<pre><code>## This is mgcv 1.8-28. For overview type &#39;help(&quot;mgcv-package&quot;)&#39;.
+</code></pre>
+
+<pre><code>## Loading required package: genefilter
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;genefilter&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:MASS&#39;:
+## 
+##     area
+</code></pre>
+
+<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
+## 
+##     rowSds, rowVars
+</code></pre>
+
+<pre><code>## Loading required package: ggplot2
+</code></pre>
+
+<pre><code>## Loading required package: plyr
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;plyr&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:XVector&#39;:
+## 
+##     compact
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:matrixStats&#39;:
+## 
+##     count
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:IRanges&#39;:
+## 
+##     desc
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:S4Vectors&#39;:
+## 
+##     rename
+</code></pre>
+
+<pre><code>## Loading required package: reshape2
+</code></pre>
+
+<pre><code>## Loading required package: gridExtra
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;gridExtra&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:minfi&#39;:
+## 
+##     combine
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:Biobase&#39;:
+## 
+##     combine
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:BiocGenerics&#39;:
+## 
+##     combine
+</code></pre>
+
+<pre><code>## Loading required package: multcomp
+</code></pre>
+
+<pre><code>## Loading required package: mvtnorm
+</code></pre>
+
+<pre><code>## Loading required package: survival
+</code></pre>
+
+<pre><code>## Loading required package: TH.data
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;TH.data&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:MASS&#39;:
+## 
+##     geyser
+</code></pre>
+
+<pre><code>## Loading required package: lme4
+</code></pre>
+
+<pre><code>## Loading required package: Matrix
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:S4Vectors&#39;:
+## 
+##     expand
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;lme4&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:nlme&#39;:
+## 
+##     lmList
+</code></pre>
+
+<pre><code>## Loading required package: fastICA
+</code></pre>
+
+<pre><code>## Loading required package: DNAcopy
+</code></pre>
+
+<pre><code>## Loading required package: quadprog
+</code></pre>
+
+<pre><code>## Loading required package: statmod
+</code></pre>
+
+<pre><code>## Loading required package: gdsfmt
+</code></pre>
+
+<pre><code>## Loading required package: SmartSVA
+</code></pre>
+
+<pre><code>## Loading required package: isva
+</code></pre>
+
+<pre><code>## Loading required package: qvalue
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;qvalue&#39;
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     qplot
+</code></pre>
+
+<pre><code>## Loading required package: JADE
+</code></pre>
+
+<pre><code>## Loading required package: RSpectra
+</code></pre>
+
+<pre><code>## Loading required package: preprocessCore
+</code></pre>
+
+<pre><code class="r">options(mc.cores=5)
+samplesheet &lt;- meffil.create.samplesheet(path)
+
+samples &lt;- read.csv(file.path(path, &quot;samples.csv&quot;), check.names=F, row.names=1)
+samplesheet &lt;- data.frame(samplesheet,
+                          samples[match(samplesheet$Sample_Name, rownames(samples)),],
+                          stringsAsFactors=F, check.names=F)
+
+samplesheet &lt;- samplesheet[which(samplesheet[[&quot;sample type&quot;]] == &quot;HM450K&quot;),]
+</code></pre>
+
+<p>Parameters.</p>
+
+<pre><code class="r">qc.file &lt;- &quot;cord/qc-report.html&quot;
+author &lt;- &quot;Sen, et al.&quot;
+study &lt;- &quot;Cord blood DNA methylation and lead exposure (GSE69633)&quot;
+norm.file &lt;- &quot;cord/normalization-report.html&quot;
+cell.type.reference &lt;- &quot;gervin and lyle cord blood&quot;
+</code></pre>
+
+<p>Generate QC objects for each sample and QC report.</p>
+
+<pre><code class="r">qc.objects &lt;- meffil.qc(samplesheet, cell.type.reference=cell.type.reference, verbose=T)
+</code></pre>
+
+<pre><code>## [read.idat] Thu Jun 24 23:41:10 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Grn.idat 
+## [read.idat] Thu Jun 24 23:41:10 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Red.idat 
+## [extract.detection.pvalues] Thu Jun 24 23:41:12 2021  
+## [extract.beadnum] Thu Jun 24 23:41:18 2021  
+## [extract.snp.betas] Thu Jun 24 23:41:20 2021  
+## [extract.controls] Thu Jun 24 23:41:20 2021  
+## [background.correct] Thu Jun 24 23:41:22 2021 background correction for dye = R 
+## [background.correct] Thu Jun 24 23:41:23 2021 background correction for dye = G 
+## [dye.bias.correct] Thu Jun 24 23:41:25 2021  
+## [FUN] Thu Jun 24 23:41:30 2021 predicting sex
+</code></pre>
+
+<pre><code class="r">qc.summary &lt;- meffil.qc.summary(qc.objects, verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.qc.summary] Thu Jun 24 23:44:11 2021 Sex summary TRUE 
+## [meffil.qc.summary] Thu Jun 24 23:44:11 2021 Meth vs unmeth summary 
+## [meffil.qc.summary] Thu Jun 24 23:44:11 2021 Control means summary 
+## [meffil.qc.summary] Thu Jun 24 23:44:11 2021 Sample detection summary 
+## [meffil.qc.summary] Thu Jun 24 23:44:13 2021 CpG detection summary 
+## [meffil.qc.summary] Thu Jun 24 23:44:13 2021 Sample bead numbers summary 
+## [meffil.qc.summary] Thu Jun 24 23:44:15 2021 CpG bead numbers summary 
+## [meffil.qc.summary] Thu Jun 24 23:44:16 2021 Cell count summary 
+## [meffil.qc.summary] Thu Jun 24 23:44:16 2021 Genotype concordance
+</code></pre>
+
+<pre><code class="r">meffil.qc.report(qc.summary,
+                 output.file=qc.file,
+                 author=author,
+                 study=study)
+</code></pre>
+
+<pre><code>## [meffil.qc.report] Thu Jun 24 23:44:16 2021 Writing report as html file to cord/qc-report.html
+</code></pre>
+
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;
+</code></pre>
+
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+</code></pre>
+
+<p>Remove any low quality samples.</p>
+
+<pre><code class="r">if (nrow(qc.summary$bad.samples) &gt; 0)
+    qc.objects &lt;- meffil.remove.samples(qc.objects, qc.summary$bad.samples$sample.name)
+
+samplesheet &lt;- samplesheet[match(names(qc.objects), rownames(samplesheet)),]
+</code></pre>
+
+<p>Check how many principal components to include.</p>
+
+<pre><code class="r">print(meffil.plot.pc.fit(qc.objects, n.cross=3)$plot)
+</code></pre>
+
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbAAAAGwCAIAAABHLKd9AAAABmJLR0QA/wD/AP+gvaeTAAAgAElEQVR4nOzdeXwU9f0/8Pdn7r03d0ggIQlJCAkg5VIBDw5Bazm9qGdFULHYaK1C1ZbWfpH2p3ggXlBEqwiKoiiIEA45KghExYKAHAFCOHJnN3vPzO+PiWtYsrl2suf7+eCPmc3sZ98zG16Z4zOfIbIsA0IIIQAq1AUghFC4wEBECKEmGIgIIdQEAxEhhJpEaiBeccUV5GJJSUlnzpwhhDQ2NgJA//79v/jiCxU/sXnjzb333ntXXHFFJxqsrq4mhFRXV7dn4dWrV2dnZ//1r3/txAf58BbcfI2at6/iZ/mj+rfTok2bNmVlZXX1p7TI3zYcMWKE9zdWo9EMHDhw/fr13p+eOnVq6tSp2dnZBoNh4MCBy5cvD27VKGIDEQCKi4vLmiktLTWZTM899xzHcQDgcrkkSWrl7Q6Ho0Mf17zx4Hv++ecfe+yxdoZUO1et+Ro1b78rPstHm99OyHVuvbxa2Ya///3vld/Y3bt39+/ff/LkyadPnwaAY8eO9evXT6fTLVu2bMeOHbfffvv06dP/85//BFIG6jA5Ml1++eVz5871efHcuXMAYLVaR4wYQVGUTqd74YUXmi9QV1cHAHv27CkoKFiyZIksy2fOnJk8eXJ8fHxaWtpTTz3l8XiUJRcvXpyTk6PRaAYNGrR79+7mjcuyvHv37iFDhhiNxtGjRz/77LOXX365LMvl5eUA4G3hsccee+CBB5TpnTt3Dhs2zGAwJCUlPfjgg263W5blqqoqAKiqqmrx45obN24cTdNarVZZ5ePHj48dO9ZkMuXn57/88sv+Vq25Fgv2rlHz9n0+q8Xt087NaLVaAWD16tXp6ekajWbUqFHnzp2TZdnft+NveX8bVln+ueeeM5vN8fHxs2fP3rFjh5IpEydOdDqdJSUlPXv2fOONN3JycpKTkx988EG73a400s71av178fdd+GzD5oYPH/7UU095Z91ut06n+89//iPL8nXXXTd9+vTmCz/77LO9e/f29wuJukJ0BqIsy7179/788899FlB+40eOHLl582aLxSKKYr9+/e6///4TJ07s3LkzLy/vz3/+syzL+/fvpyhq+fLlP/300+23315YWNi88crKSr1eX1xcfOTIkVdffZVl2dYDURTF+Pj4mTNn/vTTT5s2bTIajStWrJCbBWKLH+dj0KBBq1atkmXZ7XZnZ2dPmzbt2LFja9asMZvN77333qWr1vy9/gpuvrm87Tef9rd92rkZlcAaMGDAgQMHSktLs7KyHn30UeUjWvx2/C3feiCOGTOmvLx88eLFAFBYWHjo0KHNmzczDPPBBx+UlJQwDDNs2LD9+/dv2rSpR48excXF7V+vNr8Xf9+Fz/ZsrsVAXLp06fnz5wHg8OHDzRe22WxHjx6VJKk9vyFIFREciD67uiUlJe0MxE8++USZLSkp6datm/d/2sqVK/v16yfL8urVq41GY21trSzLlZWVX375pdwsPp5//vmCggJJkpR33Xzzza0Hot1uf/311xsaGpTXR40a9dxzz8nNArHFj/Ph/Q+2Zs2apKQkp9OpvP63v/1t2LBhl65ac/4KbjMQ/W2fdm5GJbDWrFmjvD5nzpybbrpJmW4lEC9dvvVA3Lt3ryzLkiSZzeZly5Ypy1x55ZUvvvhiSUlJ85RZuXKlXq+XJKmd69Xm9+Lvu5BbDcSHH364vLy8vLz84MGD06dPFwTh2LFjW7ZsYVnWW5KP9vyGIFUwKh59B1lxcXFxcbF3NiUlpb6+vj1v7Nu3rzJx5MiRysrK1NRUZdbtdisntkaOHNm7d+/MzMyJEyfedNNNN954Y/O3HzlyZNiwYYQQZXbYsGErVqxo5eMEQbj11lvXr19fWlq6Y8eOnTt3Xn/99c0XaP3jfBw5cuSyyy7znsocMmTIq6++eumqBVJw8ze2uH18Pqv1xYqKipQJk8nUng/t6PLK5xJC9Hp9enq68qLRaFQm4uLi8vLylOkRI0ZYrdZz5861c73a/F5a/y78efnll19++WUAoCgqNzd35cqV2dnZJ06c8H5Bl+rQbwgKRARfVDGbzZnNCILQzjfqdDplwmAw5OXlVf6srq6uoaEBAIxG4+7duz/99FONRnPvvfdefvnlzU+x0zTd/HeX5/kWP8Xj8SgT1dXVgwcPfumll3r06PHaa69NnDjRZ8nWP86HLMvNP52iKO8HNV+15tpZ8KX8bR+fz2p9sY5ehmpz+ebr6+PSTPHZVkr77VyvNr+X1r8Lf7yHzKIoHjp0aPz48QBQVFTkcrmOHj3afMnjx48PHjy4rKysQ78hKBARHIiBy8/PP3TokPc/w7Jly2bNmgUAW7ZsWbp06TXXXPP6668fOXKktLR037593nfl5uZ+/fXX3tlvvvmmeZsWi0WZOHjwoDKxYcMGm8321VdfzZw5s6ioyG63+5TR+sf5yM3N/f77710ulzK7Z88e7x5QK29ppeBW+Ns+nVssQJdu2PaoqanxpsyOHTsSExMTEhLaWXCb30snvgt/UlJShg8fPn/+/OYvLl++/OTJk5mZmR36DUGBiNpAJIScP39eFMVWlhk8ePDQoUPvvPPOI0eOrFu37rHHHuvTpw8A1NbW/v73v9+4ceOZM2eWLl1K03SvXr2877rzzjvLysoef/zxsrKyt99+++OPP1ZeT0xM5DjuX//6V01Nzdtvv71x40bldb1eX11dvWfPnrq6updeemnjxo01NTXNy2j943zccMMNGo3m4YcfPn369Pr16xcsWDBz5szWN4W/gtvkb/t0brHm2vPtePnbsO00bdq0H3/8cfv27X/84x+V4GtnwW1+L534LlqxePHiDz744O67796+fft333337LPPzp07d/78+YSQDv2GoICE8gRmANq8yvzMM88YDIYXX3yx+QLKWXOlM4fi/PnzkydPjouLS0tLmzt3rnLlQZKkJ554IjU1VRCEAQMGrF271qfxXbt2DR482Gg0jhw5cvny5co1ClmWly1bppzGyszMnDlzpnLuX5KkmTNnmkym7t27z549+9///rfJZFq7dq33okqLH+ej+Un6I0eOjBkzxmg05ubmvvTSS/5WrbkWC27zooq/7dPOzahc9CgvL1eWmT9/vveiSovfTivLt7hhfZbv3r17SUmJMj1u3DjlosqAAQNmzZqVlpaWlpb2+OOPe69atGe92vO9tPhdyO2+ynxpaxMmTEhLSzMYDIMGDVJ6I7SzEqQKIuPwX2qzWCyCILAsG+pCog1uWNTVMBARQqhJ1J5DRAihjsJARAihJhiICCHUBAMRIYSaYCAihFATDESEEGoSeYM7SJLkvRWfkDDtNqRuYSq2Fs6FAUAYrmbYFqZua136X4lhIiZnIqZQL6fTqYx6TwhJSEiwWCxOpzPwZmmaFgTh0icEdE5CQoLNZrv0tuVOUMZx8d7JG6C4uDi3263WahqNxubDIgTCZDJJkqTWaqpYmMFgoCiqnQMptUnFwnQ6Hcdxyt01gTMYDMo9S4E3RVGUVqtV7iNSJCYmBt5scOAh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" alt="plot of chunk unnamed-chunk-6"/></p>
+
+<p>Ten seems about right.</p>
+
+<pre><code class="r">number.pcs &lt;- 10
+</code></pre>
+
+<p>Normalize dataset and generate normalization report.</p>
+
+<pre><code class="r">norm.objects &lt;- meffil.normalize.quantiles(qc.objects, number.pcs=number.pcs, verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.normalize.quantiles] Thu Jun 24 23:45:12 2021 selecting dye correction reference 
+## [meffil.normalize.quantiles] Thu Jun 24 23:45:12 2021 creating control matrix 
+## [meffil.normalize.quantiles] Thu Jun 24 23:45:12 2021 normalizing quantiles 
+## [FUN] Thu Jun 24 23:45:12 2021 genomic.iG M 
+## [FUN] Thu Jun 24 23:45:13 2021 genomic.iG U 
+## [FUN] Thu Jun 24 23:45:13 2021 genomic.iR M 
+## [FUN] Thu Jun 24 23:45:13 2021 genomic.iR U 
+## [FUN] Thu Jun 24 23:45:13 2021 genomic.ii M 
+## [FUN] Thu Jun 24 23:45:13 2021 genomic.ii U 
+## [FUN] Thu Jun 24 23:45:13 2021 autosomal.iG M 
+## [FUN] Thu Jun 24 23:45:13 2021 autosomal.iG U 
+## [FUN] Thu Jun 24 23:45:14 2021 autosomal.iR M 
+## [FUN] Thu Jun 24 23:45:14 2021 autosomal.iR U 
+## [FUN] Thu Jun 24 23:45:14 2021 autosomal.ii M 
+## [FUN] Thu Jun 24 23:45:14 2021 autosomal.ii U 
+## [FUN] Thu Jun 24 23:45:14 2021 not.y.iG M 
+## [FUN] Thu Jun 24 23:45:14 2021 not.y.iG U 
+## [FUN] Thu Jun 24 23:45:15 2021 not.y.iR M 
+## [FUN] Thu Jun 24 23:45:15 2021 not.y.iR U 
+## [FUN] Thu Jun 24 23:45:15 2021 not.y.ii M 
+## [FUN] Thu Jun 24 23:45:15 2021 not.y.ii U 
+## [FUN] Thu Jun 24 23:45:15 2021 sex M 
+## [FUN] Thu Jun 24 23:45:15 2021 sex U 
+## [FUN] Thu Jun 24 23:45:15 2021 chrx M 
+## [FUN] Thu Jun 24 23:45:15 2021 chrx U 
+## [FUN] Thu Jun 24 23:45:16 2021 chry M 
+## [FUN] Thu Jun 24 23:45:16 2021 chry U
+</code></pre>
+
+<pre><code class="r">norm.dataset &lt;- meffil.normalize.samples(norm.objects,
+                                        just.beta=F, 
+                                        cpglist.remove=qc.summary$bad.cpgs$name,
+                                        verbose=T)
+</code></pre>
+
+<pre><code>## [read.idat] Thu Jun 24 23:45:16 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Grn.idat 
+## [read.idat] Thu Jun 24 23:45:16 2021 Reading data-450k-lead/GSM1704996_5815073001_R04C01_Red.idat 
+## [background.correct] Thu Jun 24 23:45:16 2021 background correction for dye = R 
+## [background.correct] Thu Jun 24 23:45:19 2021 background correction for dye = G 
+## [dye.bias.correct] Thu Jun 24 23:45:21 2021  
+## [meffil.normalize.sample] Thu Jun 24 23:45:23 2021 Normalizing methylated and unmethylated signals.
+</code></pre>
+
+<pre><code class="r">beta &lt;- meffil.get.beta(norm.dataset$M, norm.dataset$U)
+pcs &lt;- meffil.methylation.pcs(beta, sites=meffil.get.autosomal.sites(&quot;450k&quot;), verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.methylation.pcs] Thu Jun 24 23:47:20 2021 Calculating CpG variance 
+## [meffil.methylation.pcs] Thu Jun 24 23:47:21 2021 Calculating beta PCs
+</code></pre>
+
+<pre><code class="r">parameters &lt;- meffil.normalization.parameters(norm.objects)
+norm.summary &lt;- meffil.normalization.summary(norm.objects=norm.objects,
+                                             pcs=pcs,
+                                             parameters=parameters, verbose=T)
+</code></pre>
+
+<pre><code>## [meffil.plot.control.batch] Thu Jun 24 23:47:22 2021 Extracting batch variables 
+## [meffil.plot.control.batch] Thu Jun 24 23:47:22 2021 Testing associations 
+## [meffil.plot.probe.batch] Thu Jun 24 23:47:37 2021 Extracting batch variables 
+## [meffil.plot.probe.batch] Thu Jun 24 23:47:37 2021 Testing associations
+</code></pre>
+
+<pre><code class="r">meffil.normalization.report(norm.summary,
+                            output.file=norm.file,
+                            author=author,
+                            study=study)
+</code></pre>
+
+<pre><code>## [meffil.normalization.report] Thu Jun 24 23:47:51 2021 Writing report as html file to cord/normalization-report.html
+</code></pre>
+
+<h2 id="toc_3">Estimate cell counts using all available references</h2>
+
+<pre><code class="r">counts &lt;- sapply(meffil.list.cell.type.references(), function(reference) {
+    cat(date(), reference, &quot;\n&quot;)
+    do.call(rbind, mclapply(qc.objects, function(qc.object) {
+        meffil.estimate.cell.counts(qc.object, cell.type.reference=reference)$counts
+    }))
+}, simplify=F)
+</code></pre>
+
+<pre><code>## Thu Jun 24 23:50:43 2021 andrews and bakulski cord blood 
+## Thu Jun 24 23:52:01 2021 blood gse35069 
+## Thu Jun 24 23:53:17 2021 blood gse35069 chen 
+## Thu Jun 24 23:54:37 2021 blood gse35069 complete 
+## Thu Jun 24 23:56:11 2021 combined cord blood 
+## Thu Jun 24 23:57:33 2021 cord blood gse68456 
+## Thu Jun 24 23:59:03 2021 gervin and lyle cord blood 
+## Fri Jun 25 00:00:28 2021 guintivano dlpfc 
+## Fri Jun 25 00:01:48 2021 saliva gse48472
+</code></pre>
+
+<h2 id="toc_4">Compare counts between references</h2>
+
+<pre><code class="r">r &lt;- sapply(names(counts), function(n1)
+       sapply(names(counts), function(n2) {
+           sapply(intersect(colnames(counts[[n1]]), colnames(counts[[n2]])),
+                  function(type) cor(counts[[n1]][,type], counts[[n2]][,type]))
+       }))
+</code></pre>
+
+<pre><code class="r">types &lt;- unique(unlist(lapply(counts, function(counts) colnames(counts))))
+for (type in types) {
+    cat(&quot;Cell type&quot;, type, &quot;-----------------\n&quot;)
+    for (n1 in colnames(r))
+        for (n2 in rownames(r)) 
+            if (n1 &lt; n2 &amp;&amp; type %in% names(r[n1,n2][[1]]))
+                cat(r[n1,n2][[1]][[type]], n1, &quot;--&quot;, n2, &quot;\n&quot;)    
+}
+</code></pre>
+
+<pre><code>## Cell type Bcell -----------------
+## 0.7320961 andrews and bakulski cord blood -- blood gse35069 
+## 0.6882443 andrews and bakulski cord blood -- blood gse35069 chen 
+## 0.7388463 andrews and bakulski cord blood -- blood gse35069 complete 
+## 0.9178149 andrews and bakulski cord blood -- combined cord blood 
+## 0.9222809 andrews and bakulski cord blood -- cord blood gse68456 
+## 0.6286834 andrews and bakulski cord blood -- gervin and lyle cord blood 
+## 0.7468512 andrews and bakulski cord blood -- saliva gse48472 
+## 0.6572276 blood gse35069 -- blood gse35069 chen 
+## 0.99326 blood gse35069 -- blood gse35069 complete 
+## 0.6715125 blood gse35069 -- combined cord blood 
+## 0.4985467 blood gse35069 -- cord blood gse68456 
+## 0.9619068 blood gse35069 -- gervin and lyle cord blood 
+## 0.9924158 blood gse35069 -- saliva gse48472 
+## 0.6913443 blood gse35069 chen -- blood gse35069 complete 
+## 0.6471715 blood gse35069 chen -- combined cord blood 
+## 0.6247752 blood gse35069 chen -- cord blood gse68456 
+## 0.6229087 blood gse35069 chen -- gervin and lyle cord blood 
+## 0.662963 blood gse35069 chen -- saliva gse48472 
+## 0.6823433 blood gse35069 complete -- combined cord blood 
+## 0.5056697 blood gse35069 complete -- cord blood gse68456 
+## 0.9667665 blood gse35069 complete -- gervin and lyle cord blood 
+## 0.9933404 blood gse35069 complete -- saliva gse48472 
+## 0.9032156 combined cord blood -- cord blood gse68456 
+## 0.5587003 combined cord blood -- gervin and lyle cord blood 
+## 0.6866336 combined cord blood -- saliva gse48472 
+## 0.370461 cord blood gse68456 -- gervin and lyle cord blood 
+## 0.5110402 cord blood gse68456 -- saliva gse48472 
+## 0.9541537 gervin and lyle cord blood -- saliva gse48472 
+## Cell type CD4T -----------------
+## 0.8493954 andrews and bakulski cord blood -- blood gse35069 
+## 0.8052387 andrews and bakulski cord blood -- blood gse35069 chen 
+## 0.8586418 andrews and bakulski cord blood -- blood gse35069 complete 
+## 0.9431329 andrews and bakulski cord blood -- combined cord blood 
+## 0.948346 andrews and bakulski cord blood -- cord blood gse68456 
+## 0.8140324 andrews and bakulski cord blood -- gervin and lyle cord blood 
+## 0.895356 andrews and bakulski cord blood -- saliva gse48472 
+## 0.8406206 blood gse35069 -- blood gse35069 chen 
+## 0.9906903 blood gse35069 -- blood gse35069 complete 
+## 0.8099946 blood gse35069 -- combined cord blood 
+## 0.8345671 blood gse35069 -- cord blood gse68456 
+## 0.784578 blood gse35069 -- gervin and lyle cord blood 
+## 0.9749741 blood gse35069 -- saliva gse48472 
+## 0.8268984 blood gse35069 chen -- blood gse35069 complete 
+## 0.7764948 blood gse35069 chen -- combined cord blood 
+## 0.7513654 blood gse35069 chen -- cord blood gse68456 
+## 0.7039019 blood gse35069 chen -- gervin and lyle cord blood 
+## 0.8419537 blood gse35069 chen -- saliva gse48472 
+## 0.8179449 blood gse35069 complete -- combined cord blood 
+## 0.8428084 blood gse35069 complete -- cord blood gse68456 
+## 0.7867865 blood gse35069 complete -- gervin and lyle cord blood 
+## 0.9629324 blood gse35069 complete -- saliva gse48472 
+## 0.9101578 combined cord blood -- cord blood gse68456 
+## 0.8189643 combined cord blood -- gervin and lyle cord blood 
+## 0.8556574 combined cord blood -- saliva gse48472 
+## 0.7483267 cord blood gse68456 -- gervin and lyle cord blood 
+## 0.8703618 cord blood gse68456 -- saliva gse48472 
+## 0.8029532 gervin and lyle cord blood -- saliva gse48472 
+## Cell type CD8T -----------------
+## 0.3315972 andrews and bakulski cord blood -- blood gse35069 
+## 0.5620297 andrews and bakulski cord blood -- blood gse35069 chen 
+## 0.3617071 andrews and bakulski cord blood -- blood gse35069 complete 
+## 0.5165115 andrews and bakulski cord blood -- combined cord blood 
+## 0.5761808 andrews and bakulski cord blood -- cord blood gse68456 
+## 0.5681097 andrews and bakulski cord blood -- gervin and lyle cord blood 
+## 0.3897305 andrews and bakulski cord blood -- saliva gse48472 
+## 0.384296 blood gse35069 -- blood gse35069 chen 
+## 0.9914529 blood gse35069 -- blood gse35069 complete 
+## 0.779707 blood gse35069 -- combined cord blood 
+## 0.8235556 blood gse35069 -- cord blood gse68456 
+## 0.009902409 blood gse35069 -- gervin and lyle cord blood 
+## 0.9574848 blood gse35069 -- saliva gse48472 
+## 0.3685629 blood gse35069 chen -- blood gse35069 complete 
+## 0.4139827 blood gse35069 chen -- combined cord blood 
+## 0.4451916 blood gse35069 chen -- cord blood gse68456 
+## 0.3205142 blood gse35069 chen -- gervin and lyle cord blood 
+## 0.4602431 blood gse35069 chen -- saliva gse48472 
+## 0.7918777 blood gse35069 complete -- combined cord blood 
+## 0.8243925 blood gse35069 complete -- cord blood gse68456 
+## 0.01233793 blood gse35069 complete -- gervin and lyle cord blood 
+## 0.9448567 blood gse35069 complete -- saliva gse48472 
+## 0.8028447 combined cord blood -- cord blood gse68456 
+## 0.2402036 combined cord blood -- gervin and lyle cord blood 
+## 0.7760811 combined cord blood -- saliva gse48472 
+## 0.2023403 cord blood gse68456 -- gervin and lyle cord blood 
+## 0.8428573 cord blood gse68456 -- saliva gse48472 
+## 0.0596231 gervin and lyle cord blood -- saliva gse48472 
+## Cell type Gran -----------------
+## 0.9501389 andrews and bakulski cord blood -- blood gse35069 
+## 0.9202963 andrews and bakulski cord blood -- combined cord blood 
+## 0.9930841 andrews and bakulski cord blood -- cord blood gse68456 
+## 0.9458931 andrews and bakulski cord blood -- gervin and lyle cord blood 
+## 0.9768667 andrews and bakulski cord blood -- saliva gse48472 
+## 0.908433 blood gse35069 -- combined cord blood 
+## 0.9238253 blood gse35069 -- cord blood gse68456 
+## 0.9655002 blood gse35069 -- gervin and lyle cord blood 
+## 0.9686651 blood gse35069 -- saliva gse48472 
+## 0.9098507 combined cord blood -- cord blood gse68456 
+## 0.8689077 combined cord blood -- gervin and lyle cord blood 
+## 0.9134046 combined cord blood -- saliva gse48472 
+## 0.9266525 cord blood gse68456 -- gervin and lyle cord blood 
+## 0.9622823 cord blood gse68456 -- saliva gse48472 
+## 0.9746954 gervin and lyle cord blood -- saliva gse48472 
+## Cell type Mono -----------------
+## 0.8114459 andrews and bakulski cord blood -- blood gse35069 
+## 0.5551357 andrews and bakulski cord blood -- blood gse35069 chen 
+## 0.7252522 andrews and bakulski cord blood -- blood gse35069 complete 
+## 0.8307538 andrews and bakulski cord blood -- combined cord blood 
+## 0.8454823 andrews and bakulski cord blood -- cord blood gse68456 
+## 0.7380195 andrews and bakulski cord blood -- saliva gse48472 
+## 0.7255561 blood gse35069 -- blood gse35069 chen 
+## 0.8910264 blood gse35069 -- blood gse35069 complete 
+## 0.6744338 blood gse35069 -- combined cord blood 
+## 0.6526806 blood gse35069 -- cord blood gse68456 
+## 0.8564055 blood gse35069 -- saliva gse48472 
+## 0.8046305 blood gse35069 chen -- blood gse35069 complete 
+## 0.5544358 blood gse35069 chen -- combined cord blood 
+## 0.4990773 blood gse35069 chen -- cord blood gse68456 
+## 0.8013164 blood gse35069 chen -- saliva gse48472 
+## 0.6016146 blood gse35069 complete -- combined cord blood 
+## 0.5244022 blood gse35069 complete -- cord blood gse68456 
+## 0.9589719 blood gse35069 complete -- saliva gse48472 
+## 0.8102213 combined cord blood -- cord blood gse68456 
+## 0.6141336 combined cord blood -- saliva gse48472 
+## 0.5769456 cord blood gse68456 -- saliva gse48472 
+## Cell type NK -----------------
+## 0.6472597 andrews and bakulski cord blood -- blood gse35069 
+## 0.5437872 andrews and bakulski cord blood -- blood gse35069 chen 
+## 0.6225261 andrews and bakulski cord blood -- blood gse35069 complete 
+## 0.685054 andrews and bakulski cord blood -- combined cord blood 
+## 0.6187533 andrews and bakulski cord blood -- cord blood gse68456 
+## 0.5941204 andrews and bakulski cord blood -- gervin and lyle cord blood 
+## 0.6908324 andrews and bakulski cord blood -- saliva gse48472 
+## 0.6336867 blood gse35069 -- blood gse35069 chen 
+## 0.9951402 blood gse35069 -- blood gse35069 complete 
+## 0.8002133 blood gse35069 -- combined cord blood 
+## 0.5929074 blood gse35069 -- cord blood gse68456 
+## 0.9667948 blood gse35069 -- gervin and lyle cord blood 
+## 0.9865246 blood gse35069 -- saliva gse48472 
+## 0.6319216 blood gse35069 chen -- blood gse35069 complete 
+## 0.4551819 blood gse35069 chen -- combined cord blood 
+## 0.2779218 blood gse35069 chen -- cord blood gse68456 
+## 0.6760378 blood gse35069 chen -- gervin and lyle cord blood 
+## 0.6606572 blood gse35069 chen -- saliva gse48472 
+## 0.8070489 blood gse35069 complete -- combined cord blood 
+## 0.608911 blood gse35069 complete -- cord blood gse68456 
+## 0.9726871 blood gse35069 complete -- gervin and lyle cord blood 
+## 0.9816446 blood gse35069 complete -- saliva gse48472 
+## 0.9034484 combined cord blood -- cord blood gse68456 
+## 0.7758463 combined cord blood -- gervin and lyle cord blood 
+## 0.8290412 combined cord blood -- saliva gse48472 
+## 0.5843128 cord blood gse68456 -- gervin and lyle cord blood 
+## 0.6448506 cord blood gse68456 -- saliva gse48472 
+## 0.9434688 gervin and lyle cord blood -- saliva gse48472 
+## Cell type nRBC -----------------
+## 0.9661001 andrews and bakulski cord blood -- combined cord blood 
+## Cell type Eos -----------------
+## 0.5802125 blood gse35069 chen -- blood gse35069 complete 
+## Cell type Neu -----------------
+## 0.9656465 blood gse35069 chen -- blood gse35069 complete 
+## Cell type RBC -----------------
+## Cell type CD14 -----------------
+## Cell type NeuN_neg -----------------
+## Cell type NeuN_pos -----------------
+## Cell type Buccal -----------------
+</code></pre>
+
+<h2 id="toc_5">Variables of interest</h2>
+
+<p>We will test associations with gender, gestational age, birth weight and blood lead levels.
+The following list provides the names of potential confounders to be included
+in EWAS regression models.</p>
+
+<pre><code class="r">covariate.names &lt;- list(&quot;gender&quot;=c(&quot;socioeconomic score&quot;,&quot;gestational age&quot;,&quot;smoke ever&quot;,&quot;birth weight&quot;),
+                        &quot;gestational age&quot;=c(&quot;socioeconomic score&quot;,&quot;gender&quot;,&quot;smoke ever&quot;,&quot;birth weight&quot;),
+                        &quot;birth weight&quot;=c(&quot;socioeconomic score&quot;,&quot;gestational age&quot;,&quot;smoke ever&quot;,&quot;gender&quot;),
+                        &quot;pbconc (ng/dl)&quot;=c(&quot;socioeconomic score&quot;,&quot;gestational age&quot;,&quot;smoke ever&quot;,&quot;birth weight&quot;,&quot;gender&quot;))
+</code></pre>
+
+<p>For the gender EWAS, we will test only CpG sites on autosomes.</p>
+
+<pre><code class="r">features &lt;- meffil.featureset(&quot;450k&quot;)
+autosomal &lt;- features[which(!(features$chromosome %in% c(&quot;chrX&quot;,&quot;chrY&quot;))),]
+</code></pre>
+
+<h2 id="toc_6">Test associations</h2>
+
+<p>Test associations for each variable of interest (4)
+and each cell type reference.</p>
+
+<pre><code class="r">results &lt;- sapply(names(covariate.names), function(variable.name) {
+    variable &lt;- samplesheet[[variable.name]]
+    sapply(names(counts), function(reference) {
+        covariates &lt;- data.frame(counts[[reference]],
+                                 samplesheet[,covariate.names[[variable.name]]],
+                                 stringsAsFactors=F)
+        cat(date(), &quot;ewas&quot;, variable.name, reference, &quot;\n&quot;)
+        if (variable.name == &quot;gender&quot;)
+            beta &lt;- beta[which(rownames(beta) %in% autosomal$name),]
+        meffil.ewas(beta, variable=variable, covariates=covariates,
+                    isva=F, sva=F, smartsva=T,
+                    most.variable=50000,verbose=T)
+    }, simplify=F)
+}, simplify=F)
+</code></pre>
+
+<pre><code>## Fri Jun 25 00:03:13 2021 ewas gender andrews and bakulski cord blood 
+## [meffil.ewas] Fri Jun 25 00:03:14 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:03:14 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:03:14 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:03:14 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:03:14 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:03:51 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:04:00 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:04:01 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:04:28 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:04:28 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:04:28 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:04:33 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:04:45 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:04:45 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:04:45 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:04:48 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:05:04 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:05:04 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:05:04 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:05:11 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:05:47 2021 Finished EWAS. 
+## Fri Jun 25 00:05:47 2021 ewas gender blood gse35069 
+## [meffil.ewas] Fri Jun 25 00:05:48 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:05:48 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:05:48 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:05:48 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:05:49 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:06:25 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:06:31 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:06:31 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:07:00 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:00 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:00 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:01 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:07:08 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:08 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:08 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:11 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:07:24 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:24 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:24 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:07:32 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:08:03 2021 Finished EWAS. 
+## Fri Jun 25 00:08:03 2021 ewas gender blood gse35069 chen 
+## [meffil.ewas] Fri Jun 25 00:08:08 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:08:08 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:08:08 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:08:08 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:08:09 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:08:44 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:08:54 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:08:54 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:09:19 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:19 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:19 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:21 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:09:28 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:28 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:28 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:31 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:09:42 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:42 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:42 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:09:48 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:10:17 2021 Finished EWAS. 
+## Fri Jun 25 00:10:18 2021 ewas gender blood gse35069 complete 
+## [meffil.ewas] Fri Jun 25 00:10:18 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:10:18 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:10:18 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:10:18 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:10:19 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:10:46 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:10:51 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:10:51 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:11:12 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:12 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:12 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:13 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:11:19 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:19 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:19 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:23 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:11:33 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:33 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:33 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:11:40 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:12:04 2021 Finished EWAS. 
+## Fri Jun 25 00:12:04 2021 ewas gender combined cord blood 
+## [meffil.ewas] Fri Jun 25 00:12:05 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:12:05 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:12:05 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:12:05 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:12:05 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:12:30 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:12:37 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:12:37 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:12:57 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:12:57 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:12:57 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:12:59 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:13:04 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:13:04 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:13:04 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:13:06 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:13:16 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:13:16 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:13:16 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:13:22 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:13:47 2021 Finished EWAS. 
+## Fri Jun 25 00:13:47 2021 ewas gender cord blood gse68456 
+## [meffil.ewas] Fri Jun 25 00:13:47 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:13:47 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:13:47 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:13:47 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:13:48 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:14:12 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:14:17 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:14:17 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:14:37 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:37 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:37 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:39 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:14:44 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:44 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:44 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:47 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:14:58 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:58 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:14:58 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:15:06 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:15:30 2021 Finished EWAS. 
+## Fri Jun 25 00:15:30 2021 ewas gender gervin and lyle cord blood 
+## [meffil.ewas] Fri Jun 25 00:15:31 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:15:31 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:15:31 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:15:31 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:15:31 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:15:57 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:16:03 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:16:03 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:16:25 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:25 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:25 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:27 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:16:33 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:33 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:33 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:35 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:16:45 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:45 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:45 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:16:53 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:17:18 2021 Finished EWAS. 
+## Fri Jun 25 00:17:18 2021 ewas gender guintivano dlpfc 
+## [meffil.ewas] Fri Jun 25 00:17:18 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:17:18 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:17:18 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:17:18 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:17:19 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:17:44 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:17:51 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:17:51 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:18:15 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:15 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:15 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:17 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:18:23 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:23 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:23 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:25 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:18:34 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:34 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:34 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:18:39 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:19:03 2021 Finished EWAS. 
+## Fri Jun 25 00:19:04 2021 ewas gender saliva gse48472 
+## [meffil.ewas] Fri Jun 25 00:19:04 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:19:04 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:19:04 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:19:04 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:19:04 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:19:31 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:19:40 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:19:40 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:20:03 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:03 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:03 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:05 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:20:14 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:14 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:14 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:17 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:20:27 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:27 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:27 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:20:33 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:20:59 2021 Finished EWAS. 
+## Fri Jun 25 00:20:59 2021 ewas gestational age andrews and bakulski cord blood 
+## [meffil.ewas] Fri Jun 25 00:20:59 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:20:59 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:20:59 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:20:59 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:21:00 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:21:28 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:21:37 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:21:37 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:22:00 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:00 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:00 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:02 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:22:09 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:09 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:09 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:12 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:22:24 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:24 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:24 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:22:30 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:23:00 2021 Finished EWAS. 
+## Fri Jun 25 00:23:01 2021 ewas gestational age blood gse35069 
+## [meffil.ewas] Fri Jun 25 00:23:01 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:23:01 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:23:01 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:23:01 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:23:01 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:23:30 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:23:36 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:23:36 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:24:01 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:01 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:01 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:03 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:24:11 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:11 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:11 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:14 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:24:29 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:29 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:29 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:24:34 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:25:04 2021 Finished EWAS. 
+## Fri Jun 25 00:25:04 2021 ewas gestational age blood gse35069 chen 
+## [meffil.ewas] Fri Jun 25 00:25:05 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:25:05 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:25:05 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:25:05 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:25:05 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:25:33 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:25:38 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:25:38 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:26:03 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:03 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:03 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:04 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:26:14 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:14 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:14 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:17 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:26:28 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:28 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:28 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:26:33 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:26:59 2021 Finished EWAS. 
+## Fri Jun 25 00:27:00 2021 ewas gestational age blood gse35069 complete 
+## [meffil.ewas] Fri Jun 25 00:27:01 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:27:01 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:27:01 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:27:01 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:27:01 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:27:28 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:27:33 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:27:33 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:27:56 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:27:56 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:27:56 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:27:58 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:28:04 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:28:04 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:28:04 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:28:07 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:28:21 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:28:21 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:28:21 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:28:26 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:28:51 2021 Finished EWAS. 
+## Fri Jun 25 00:28:51 2021 ewas gestational age combined cord blood 
+## [meffil.ewas] Fri Jun 25 00:28:52 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:28:52 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:28:52 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:28:52 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:28:52 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:29:16 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:29:25 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:29:25 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:29:44 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:29:44 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:29:44 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:29:46 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:29:51 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:29:51 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:29:51 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:29:53 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:30:03 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:30:03 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:30:03 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:30:08 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:30:34 2021 Finished EWAS. 
+## Fri Jun 25 00:30:34 2021 ewas gestational age cord blood gse68456 
+## [meffil.ewas] Fri Jun 25 00:30:34 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:30:34 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:30:34 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:30:34 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:30:35 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:30:57 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:31:02 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:31:02 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:31:22 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:22 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:22 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:24 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:31:29 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:29 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:29 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:31 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:31:41 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:41 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:41 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:31:46 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:32:09 2021 Finished EWAS. 
+## Fri Jun 25 00:32:10 2021 ewas gestational age gervin and lyle cord blood 
+## [meffil.ewas] Fri Jun 25 00:32:10 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:32:10 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:32:10 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:32:10 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:32:10 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:32:35 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:32:39 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:32:39 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:32:59 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:32:59 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:32:59 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:33:00 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:33:06 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:33:06 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:33:06 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:33:08 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:33:18 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:33:18 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:33:18 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:33:23 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:33:46 2021 Finished EWAS. 
+## Fri Jun 25 00:33:46 2021 ewas gestational age guintivano dlpfc 
+## [meffil.ewas] Fri Jun 25 00:33:46 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:33:46 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:33:46 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:33:46 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:33:47 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:34:12 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:34:16 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:34:16 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:34:36 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:36 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:36 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:37 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:34:43 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:43 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:43 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:45 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:34:53 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:53 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:53 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:34:57 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:35:17 2021 Finished EWAS. 
+## Fri Jun 25 00:35:17 2021 ewas gestational age saliva gse48472 
+## [meffil.ewas] Fri Jun 25 00:35:17 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:35:17 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:35:17 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:35:17 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:35:18 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:35:41 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:35:45 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:35:45 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:36:05 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:05 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:05 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:07 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:36:13 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:13 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:13 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:16 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:36:28 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:28 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:28 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:36:33 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:37:00 2021 Finished EWAS. 
+## Fri Jun 25 00:37:00 2021 ewas birth weight andrews and bakulski cord blood 
+## [meffil.ewas] Fri Jun 25 00:37:00 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:37:00 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:37:00 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:37:00 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:37:01 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:37:23 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:37:29 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:37:29 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:37:50 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:37:50 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:37:50 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:37:51 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:37:57 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:37:57 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:37:57 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:37:59 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:38:09 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:38:09 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:38:09 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:38:14 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:38:37 2021 Finished EWAS. 
+## Fri Jun 25 00:38:38 2021 ewas birth weight blood gse35069 
+## [meffil.ewas] Fri Jun 25 00:38:38 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:38:38 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:38:38 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:38:38 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:38:38 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:39:02 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:39:06 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:39:06 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:39:28 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:28 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:28 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:30 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:39:35 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:35 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:35 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:38 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:39:50 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:50 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:50 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:39:54 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:40:17 2021 Finished EWAS. 
+## Fri Jun 25 00:40:18 2021 ewas birth weight blood gse35069 chen 
+## [meffil.ewas] Fri Jun 25 00:40:19 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:40:19 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:40:19 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:40:19 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:40:19 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:40:42 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:40:46 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:40:46 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:41:07 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:07 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:07 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:08 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:41:14 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:14 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:14 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:16 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:41:26 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:26 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:26 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:41:31 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:41:55 2021 Finished EWAS. 
+## Fri Jun 25 00:41:55 2021 ewas birth weight blood gse35069 complete 
+## [meffil.ewas] Fri Jun 25 00:41:55 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:41:55 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:41:55 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:41:55 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:41:55 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:42:19 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:42:24 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:42:24 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:42:44 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:42:44 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:42:44 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:42:45 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:42:51 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:42:51 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:42:51 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:42:54 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:43:07 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:43:07 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:43:07 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:43:11 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:43:35 2021 Finished EWAS. 
+## Fri Jun 25 00:43:35 2021 ewas birth weight combined cord blood 
+## [meffil.ewas] Fri Jun 25 00:43:35 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:43:35 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:43:35 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:43:35 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:43:35 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:44:01 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:44:08 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:44:08 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:44:28 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:28 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:28 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:29 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:44:35 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:35 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:35 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:37 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:44:47 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:47 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:47 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:44:51 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:45:15 2021 Finished EWAS. 
+## Fri Jun 25 00:45:15 2021 ewas birth weight cord blood gse68456 
+## [meffil.ewas] Fri Jun 25 00:45:15 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:45:15 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:45:15 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:45:15 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:45:16 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:45:41 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:45:47 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:45:47 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:46:07 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:07 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:07 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:08 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:46:14 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:14 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:14 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:16 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:46:26 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:26 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:26 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:46:35 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:46:58 2021 Finished EWAS. 
+## Fri Jun 25 00:46:58 2021 ewas birth weight gervin and lyle cord blood 
+## [meffil.ewas] Fri Jun 25 00:46:59 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:46:59 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:46:59 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:46:59 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:46:59 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:47:22 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:47:27 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:47:27 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:47:47 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:47:47 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:47:47 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:47:49 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:47:55 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:47:55 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:47:55 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:47:57 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:48:06 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:48:06 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:48:06 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:48:11 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:48:34 2021 Finished EWAS. 
+## Fri Jun 25 00:48:35 2021 ewas birth weight guintivano dlpfc 
+## [meffil.ewas] Fri Jun 25 00:48:35 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:48:35 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:48:35 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:48:35 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:48:35 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:48:59 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:49:03 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:49:03 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:49:24 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:24 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:24 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:26 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:49:31 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:31 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:31 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:33 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:49:42 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:42 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:42 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:49:46 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:50:07 2021 Finished EWAS. 
+## Fri Jun 25 00:50:07 2021 ewas birth weight saliva gse48472 
+## [meffil.ewas] Fri Jun 25 00:50:07 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:50:07 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:50:07 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:50:07 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:50:08 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:50:32 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:50:38 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:50:38 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:51:03 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:03 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:03 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:04 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:51:10 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:10 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:10 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:12 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:51:21 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:21 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:21 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:51:26 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:51:50 2021 Finished EWAS. 
+## Fri Jun 25 00:51:51 2021 ewas pbconc (ng/dl) andrews and bakulski cord blood 
+## [meffil.ewas] Fri Jun 25 00:51:51 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:51:51 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:51:51 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:51:51 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:51:51 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:52:15 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:52:20 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:52:20 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:52:41 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:52:41 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:52:41 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:52:42 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:52:48 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:52:48 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:52:48 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:52:50 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:53:00 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:53:00 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:53:00 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:53:05 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:53:30 2021 Finished EWAS. 
+## Fri Jun 25 00:53:30 2021 ewas pbconc (ng/dl) blood gse35069 
+## [meffil.ewas] Fri Jun 25 00:53:30 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:53:30 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:53:30 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:53:30 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:53:30 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:53:54 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:54:00 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:54:00 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:54:24 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:24 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:24 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:25 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:54:31 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:31 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:31 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:33 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:54:46 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:46 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:46 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:54:51 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:55:14 2021 Finished EWAS. 
+## Fri Jun 25 00:55:15 2021 ewas pbconc (ng/dl) blood gse35069 chen 
+## [meffil.ewas] Fri Jun 25 00:55:15 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:55:15 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:55:15 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:55:15 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:55:15 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:55:39 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:55:43 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:55:44 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:56:05 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:05 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:05 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:06 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:56:12 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:12 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:12 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:14 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:56:24 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:24 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:24 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:56:29 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:56:57 2021 Finished EWAS. 
+## Fri Jun 25 00:56:57 2021 ewas pbconc (ng/dl) blood gse35069 complete 
+## [meffil.ewas] Fri Jun 25 00:56:57 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:56:57 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:56:57 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:56:57 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:56:58 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:57:21 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:57:34 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:57:34 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:57:55 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:57:55 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:57:55 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:57:56 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:58:02 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:58:02 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:58:02 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:58:04 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:58:14 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:58:14 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:58:14 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:58:19 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 00:58:42 2021 Finished EWAS. 
+## Fri Jun 25 00:58:43 2021 ewas pbconc (ng/dl) combined cord blood 
+## [meffil.ewas] Fri Jun 25 00:58:43 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 00:58:43 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 00:58:43 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 00:58:43 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 00:58:43 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 00:59:10 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 00:59:17 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 00:59:17 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 00:59:37 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:37 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:37 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:39 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:59:44 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:44 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:44 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:46 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 00:59:56 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:56 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 00:59:56 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:00:01 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 01:00:24 2021 Finished EWAS. 
+## Fri Jun 25 01:00:25 2021 ewas pbconc (ng/dl) cord blood gse68456 
+## [meffil.ewas] Fri Jun 25 01:00:25 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 01:00:25 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 01:00:25 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 01:00:25 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 01:00:25 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 01:00:49 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 01:00:54 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 01:00:54 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 01:01:15 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:15 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:15 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:16 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:01:21 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:21 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:21 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:24 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:01:34 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:34 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:34 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:01:39 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 01:02:02 2021 Finished EWAS. 
+## Fri Jun 25 01:02:02 2021 ewas pbconc (ng/dl) gervin and lyle cord blood 
+## [meffil.ewas] Fri Jun 25 01:02:03 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 01:02:03 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 01:02:03 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 01:02:03 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 01:02:03 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 01:02:26 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 01:02:32 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 01:02:33 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 01:02:58 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:02:58 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:02:58 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:02:59 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:03:04 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:03:04 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:03:04 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:03:06 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:03:16 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:03:16 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:03:16 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:03:20 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 01:03:44 2021 Finished EWAS. 
+## Fri Jun 25 01:03:44 2021 ewas pbconc (ng/dl) guintivano dlpfc 
+## [meffil.ewas] Fri Jun 25 01:03:44 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 01:03:44 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 01:03:44 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 01:03:44 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 01:03:45 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 01:04:08 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 01:04:11 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 01:04:11 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 01:04:32 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:32 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:32 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:33 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:04:39 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:39 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:39 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:40 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:04:49 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:49 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:49 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:04:53 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 01:05:13 2021 Finished EWAS. 
+## Fri Jun 25 01:05:13 2021 ewas pbconc (ng/dl) saliva gse48472 
+## [meffil.ewas] Fri Jun 25 01:05:13 2021 Simplifying any categorical variables. 
+## [meffil.ewas] Fri Jun 25 01:05:13 2021 Removing 0 missing case(s). 
+## [meffil.ewas] Fri Jun 25 01:05:13 2021 Removing 0 covariates with no variance. 
+## [meffil.ewas] Fri Jun 25 01:05:13 2021 Computing surrogate variables ... 
+## [add.surrogate.variables] Fri Jun 25 01:05:14 2021 Calculating CpG variance 
+## [add.surrogate.variables] Fri Jun 25 01:05:37 2021 smartSVA. 
+## 
+## [meffil.ewas] Fri Jun 25 01:05:46 2021 Starting EWAS ... 
+## [:::] [meffil] [ewas.by.matrix] Fri Jun 25 01:05:46 2021 Handling methylation outliers 
+## [FUN] Fri Jun 25 01:06:07 2021 EWAS for covariate set none 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:07 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:07 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:08 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:06:14 2021 EWAS for covariate set all 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:14 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:14 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:16 2021 Empirical Bayes 
+## [FUN] Fri Jun 25 01:06:26 2021 EWAS for covariate set smartsva 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:26 2021 Linear regression with limma::lmFit 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:26 2021 Linear regression with only fixed effects 
+## [:::] [meffil] [ewas.limma] Fri Jun 25 01:06:31 2021 Empirical Bayes 
+## [meffil.ewas] Fri Jun 25 01:06:55 2021 Finished EWAS.
+</code></pre>
+
+<h2 id="toc_7">Previously identified associations</h2>
+
+<p>For generating the EWAS reports,
+previously identified associations are provided
+for comparison with previous analyses.
+Only the lead (&ldquo;pbconc&rdquo;) list of associations is from the dataset
+used here.</p>
+
+<pre><code class="r">published.hits &lt;- list(&quot;gender&quot;=c(&quot;cg03691818&quot;, &quot;cg26921482&quot;, &quot;cg17743279&quot;, &quot;cg07852945&quot;, &quot;cg26355737&quot;, &quot;cg25568337&quot;, &quot;cg05100634&quot;, &quot;cg03608000&quot;, &quot;cg02325951&quot;, &quot;cg17612569&quot;, &quot;cg04874129&quot;, &quot;cg08906898&quot;, &quot;cg04946709&quot;, &quot;cg02989351&quot;, &quot;cg12204423&quot;, &quot;cg25304146&quot;, &quot;cg22345911&quot;, &quot;cg01906879&quot;, &quot;cg06152526&quot;, &quot;cg04190002&quot;, &quot;cg06644124&quot;, &quot;cg07628841&quot;, &quot;cg23001456&quot;, &quot;cg26213873&quot;, &quot;cg25438440&quot;, &quot;cg07816873&quot;, &quot;cg24016844&quot;, &quot;cg11841231&quot;, &quot;cg13323902&quot;, &quot;cg12900929&quot;), ## PMID: 26553366 (top 30)
+                       &quot;gestational age&quot;=c(&quot;cg08943494&quot;, &quot;cg11932158&quot;, &quot;cg16725984&quot;, &quot;cg20334115&quot;, &quot;cg18623216&quot;, &quot;cg07835443&quot;, &quot;cg00220721&quot;, &quot;cg04685228&quot;, &quot;cg16103712&quot;, &quot;cg27518892&quot;, &quot;cg22117805&quot;, &quot;cg21926626&quot;, &quot;cg04347477&quot;, &quot;cg08817867&quot;, &quot;cg27448161&quot;, &quot;cg01154283&quot;, &quot;cg02001279&quot;, &quot;cg02430430&quot;, &quot;cg06870470&quot;, &quot;cg13924996&quot;, &quot;cg07136133&quot;, &quot;cg00481600&quot;, &quot;cg13675859&quot;, &quot;cg11934771&quot;, &quot;cg19744173&quot;, &quot;cg12713583&quot;, &quot;cg11360522&quot;, &quot;cg16834726&quot;, &quot;cg18608055&quot;, &quot;cg05283597&quot;), ## PMID: 25869828 (top 30)
+                       &quot;birth weight&quot;=c(&quot;cg20076442&quot;, &quot;cg25953130&quot;, &quot;cg04521626&quot;, &quot;cg14097568&quot;, &quot;cg17133774&quot;, &quot;cg00654448&quot;, &quot;cg00442282&quot;, &quot;cg13696490&quot;, &quot;cg12044213&quot;, &quot;cg08817867&quot;, &quot;cg00382138&quot;, &quot;cg06870470&quot;, &quot;cg25557739&quot;, &quot;cg24324628&quot;, &quot;cg15783941&quot;, &quot;cg14597739&quot;, &quot;cg22962123&quot;, &quot;cg05851442&quot;, &quot;cg23387597&quot;, &quot;cg24973755&quot;, &quot;cg16219283&quot;, &quot;cg25799241&quot;, &quot;cg06658067&quot;), ## PMID: 25869828 (bonferroni p &lt; 0.05)
+                       &quot;pbconc (ng/dl)&quot;=c(&quot;cg01105385&quot;, &quot;cg07208333&quot;, &quot;cg08945395&quot;, &quot;cg20439288&quot;, &quot;cg20474370&quot;))## PMID: 26046694, all sites in chr5:67584213-67584451
+</code></pre>
+
+<h2 id="toc_8">EWAS reports</h2>
+
+<p>Generate a report for each EWAS.
+Significance thresholds are selected so that the top 100 associations
+are plotted in the report.
+The reports can be found in the &ldquo;cord&rdquo; directory
+under the name of the variable of interest (e.g. &ldquo;cord/gender&rdquo;).</p>
+
+<pre><code class="r">for (variable.name in names(results)) {
+    for (reference in names(results[[variable.name]])) {
+        cat(date(), &quot;EWAS report&quot;, variable.name, reference, &quot;\n&quot;)
+
+        ewas.ret &lt;- results[[variable.name]][[reference]]
+
+        ewas.parameters &lt;- meffil.ewas.parameters(max.plots=10)
+
+        ewas.summary &lt;- meffil.ewas.summary(ewas.ret,
+                                            beta,
+                                            selected.cpg.sites=published.hits[[variable.name]],
+                                            parameters=ewas.parameters, verbose=T)
+        meffil.ewas.report(ewas.summary,
+                           output.file=file.path(&quot;cord&quot;, sub(&quot; \\(.*&quot;, &quot;&quot;, variable.name),
+                               reference, &quot;report.html&quot;),
+                           author=&quot;Me&quot;,
+                           study=paste(variable.name,
+                               &quot; in cord blood DNA methylation (GEO:GSE69633)&quot;,
+                               &quot; adjusted with the &#39;&quot;, reference, &quot;&#39; cell type reference.&quot;, sep=&quot;&quot;))
+    }
+}
+</code></pre>
+
+<h2 id="toc_9">Association overlaps between different analyses</h2>
+
+<p>Show size of overlap between analyses using different cell type references.
+For each, we use the results obtained using confounders obtained using &ldquo;smartsva&rdquo;
+(all potential confounders listed above plus surrogate variables).</p>
+
+<pre><code class="r">compare.top &lt;- function(results, top=100, method) {
+    sites &lt;- lapply(results, function(ewas) {
+        idx &lt;- order(ewas$p.value[,method], decreasing=F)[1:top]
+        rownames(ewas$p.value)[idx]
+    })
+    sapply(sites, function(x) sapply(sites, function(y) length(intersect(x,y))))
+}
+comparison.table &lt;- function(results, method) {
+    comparisons &lt;- lapply(results, compare.top, method=method)
+    for (name in names(results)) {
+        comparisons[[name]] &lt;- as.data.frame(comparisons[[name]])
+        comparisons[[name]]$reference &lt;- rownames(comparisons[[name]])
+        comparisons[[name]]$variable &lt;- name
+    }
+    comparisons &lt;- do.call(rbind, comparisons)
+}
+knitr:::kable(comparison.table(results, &quot;smartsva&quot;), row.names=F)
+</code></pre>
+
+<table><thead>
+<tr>
+<th align="right">andrews and bakulski cord blood</th>
+<th align="right">blood gse35069</th>
+<th align="right">blood gse35069 chen</th>
+<th align="right">blood gse35069 complete</th>
+<th align="right">combined cord blood</th>
+<th align="right">cord blood gse68456</th>
+<th align="right">gervin and lyle cord blood</th>
+<th align="right">guintivano dlpfc</th>
+<th align="right">saliva gse48472</th>
+<th align="left">reference</th>
+<th align="left">variable</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="right">100</td>
+<td align="right">10</td>
+<td align="right">3</td>
+<td align="right">7</td>
+<td align="right">8</td>
+<td align="right">6</td>
+<td align="right">7</td>
+<td align="right">10</td>
+<td align="right">5</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">10</td>
+<td align="right">100</td>
+<td align="right">2</td>
+<td align="right">17</td>
+<td align="right">9</td>
+<td align="right">8</td>
+<td align="right">7</td>
+<td align="right">14</td>
+<td align="right">12</td>
+<td align="left">blood gse35069</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">100</td>
+<td align="right">2</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">6</td>
+<td align="right">2</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">7</td>
+<td align="right">17</td>
+<td align="right">2</td>
+<td align="right">100</td>
+<td align="right">8</td>
+<td align="right">8</td>
+<td align="right">14</td>
+<td align="right">12</td>
+<td align="right">14</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">8</td>
+<td align="right">9</td>
+<td align="right">3</td>
+<td align="right">8</td>
+<td align="right">100</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">8</td>
+<td align="right">4</td>
+<td align="left">combined cord blood</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">6</td>
+<td align="right">8</td>
+<td align="right">3</td>
+<td align="right">8</td>
+<td align="right">4</td>
+<td align="right">100</td>
+<td align="right">5</td>
+<td align="right">7</td>
+<td align="right">6</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="right">3</td>
+<td align="right">14</td>
+<td align="right">4</td>
+<td align="right">5</td>
+<td align="right">100</td>
+<td align="right">15</td>
+<td align="right">7</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">10</td>
+<td align="right">14</td>
+<td align="right">6</td>
+<td align="right">12</td>
+<td align="right">8</td>
+<td align="right">7</td>
+<td align="right">15</td>
+<td align="right">100</td>
+<td align="right">9</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">5</td>
+<td align="right">12</td>
+<td align="right">2</td>
+<td align="right">14</td>
+<td align="right">4</td>
+<td align="right">6</td>
+<td align="right">7</td>
+<td align="right">9</td>
+<td align="right">100</td>
+<td align="left">saliva gse48472</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">100</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">17</td>
+<td align="right">0</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">5</td>
+<td align="right">4</td>
+<td align="left">blood gse35069</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">17</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">combined cord blood</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">1</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">4</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">100</td>
+<td align="left">saliva gse48472</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">blood gse35069</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">combined cord blood</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="left">saliva gse48472</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">blood gse35069</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">combined cord blood</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="left">saliva gse48472</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+</tbody></table>
+
+<h2 id="toc_10">Significance ranks of previously identified associations</h2>
+
+<p>Below we show the p-value ranks in our analyses of each previously identified association.</p>
+
+<pre><code class="r">compare.p.value.ranks &lt;- function(results, method) {
+    ranks &lt;- sapply(names(results), function(variable.name) {
+        do.call(rbind, lapply(results[[variable.name]], function(ewas) {
+            idx &lt;- match(published.hits[[variable.name]], rownames(ewas$p.value))
+            r &lt;- rank(ewas$p.value[,method])[idx]
+            p &lt;- wilcox.test(ewas$p.value[idx,method],
+                             ewas$p.value[-idx,method],
+                             alternative=&quot;less&quot;)$p.value
+            c(quantile(r), p=p)
+        }))
+    }, simplify=F)
+    for (name in names(results)) {
+        ranks[[name]] &lt;- as.data.frame(ranks[[name]])
+        ranks[[name]]$reference &lt;- rownames(ranks[[name]])
+        ranks[[name]]$variable &lt;- name
+    }
+    ranks &lt;- do.call(rbind, ranks)
+}
+knitr:::kable(compare.p.value.ranks(results, &quot;smartsva&quot;), row.names=F)
+</code></pre>
+
+<table><thead>
+<tr>
+<th align="right">0%</th>
+<th align="right">25%</th>
+<th align="right">50%</th>
+<th align="right">75%</th>
+<th align="right">100%</th>
+<th align="right">p</th>
+<th align="left">reference</th>
+<th align="left">variable</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="right">508</td>
+<td align="right">26523.75</td>
+<td align="right">88589.5</td>
+<td align="right">208427.8</td>
+<td align="right">368869</td>
+<td align="right">0.0000058</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">2528</td>
+<td align="right">17522.00</td>
+<td align="right">98308.5</td>
+<td align="right">229258.0</td>
+<td align="right">469572</td>
+<td align="right">0.0000988</td>
+<td align="left">blood gse35069</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">1119</td>
+<td align="right">11919.50</td>
+<td align="right">49605.5</td>
+<td align="right">195526.0</td>
+<td align="right">469464</td>
+<td align="right">0.0000047</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">2121</td>
+<td align="right">37459.75</td>
+<td align="right">106730.5</td>
+<td align="right">205881.2</td>
+<td align="right">424324</td>
+<td align="right">0.0000224</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">916</td>
+<td align="right">30474.25</td>
+<td align="right">114988.5</td>
+<td align="right">215061.0</td>
+<td align="right">439445</td>
+<td align="right">0.0003321</td>
+<td align="left">combined cord blood</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">4445</td>
+<td align="right">27651.00</td>
+<td align="right">109295.5</td>
+<td align="right">209917.0</td>
+<td align="right">467571</td>
+<td align="right">0.0000399</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">875</td>
+<td align="right">12454.00</td>
+<td align="right">77583.0</td>
+<td align="right">209004.0</td>
+<td align="right">464019</td>
+<td align="right">0.0000083</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">97</td>
+<td align="right">7334.25</td>
+<td align="right">44002.5</td>
+<td align="right">183424.0</td>
+<td align="right">466946</td>
+<td align="right">0.0000002</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">5839</td>
+<td align="right">39892.25</td>
+<td align="right">78709.0</td>
+<td align="right">260216.0</td>
+<td align="right">461752</td>
+<td align="right">0.0006330</td>
+<td align="left">saliva gse48472</td>
+<td align="left">gender</td>
+</tr>
+<tr>
+<td align="right">40413</td>
+<td align="right">105418.00</td>
+<td align="right">239636.0</td>
+<td align="right">338049.8</td>
+<td align="right">447251</td>
+<td align="right">0.3982499</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">35020</td>
+<td align="right">120562.00</td>
+<td align="right">301433.0</td>
+<td align="right">395735.8</td>
+<td align="right">482382</td>
+<td align="right">0.7474661</td>
+<td align="left">blood gse35069</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">15286</td>
+<td align="right">79868.00</td>
+<td align="right">166872.5</td>
+<td align="right">267083.2</td>
+<td align="right">471719</td>
+<td align="right">0.0086748</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">13908</td>
+<td align="right">151712.75</td>
+<td align="right">282720.5</td>
+<td align="right">394780.0</td>
+<td align="right">483169</td>
+<td align="right">0.7837873</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">12146</td>
+<td align="right">133292.25</td>
+<td align="right">218511.0</td>
+<td align="right">282362.2</td>
+<td align="right">478525</td>
+<td align="right">0.2173864</td>
+<td align="left">combined cord blood</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">4642</td>
+<td align="right">88003.00</td>
+<td align="right">298144.0</td>
+<td align="right">384505.8</td>
+<td align="right">478324</td>
+<td align="right">0.4419021</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">1752</td>
+<td align="right">34316.50</td>
+<td align="right">103627.5</td>
+<td align="right">176319.2</td>
+<td align="right">425010</td>
+<td align="right">0.0000138</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">485</td>
+<td align="right">15123.25</td>
+<td align="right">51320.0</td>
+<td align="right">127839.5</td>
+<td align="right">432546</td>
+<td align="right">0.0000000</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">3080</td>
+<td align="right">123883.25</td>
+<td align="right">214731.0</td>
+<td align="right">322030.5</td>
+<td align="right">471277</td>
+<td align="right">0.2973906</td>
+<td align="left">saliva gse48472</td>
+<td align="left">gestational age</td>
+</tr>
+<tr>
+<td align="right">2077</td>
+<td align="right">96254.50</td>
+<td align="right">200544.0</td>
+<td align="right">293442.5</td>
+<td align="right">428730</td>
+<td align="right">0.0460795</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">8185</td>
+<td align="right">51843.00</td>
+<td align="right">83272.0</td>
+<td align="right">317988.5</td>
+<td align="right">481180</td>
+<td align="right">0.0126549</td>
+<td align="left">blood gse35069</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">20505</td>
+<td align="right">94856.00</td>
+<td align="right">194179.0</td>
+<td align="right">359455.0</td>
+<td align="right">432320</td>
+<td align="right">0.2358806</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">5699</td>
+<td align="right">29373.00</td>
+<td align="right">147550.0</td>
+<td align="right">278129.0</td>
+<td align="right">466172</td>
+<td align="right">0.0062394</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">9159</td>
+<td align="right">123455.00</td>
+<td align="right">263875.0</td>
+<td align="right">309379.5</td>
+<td align="right">422454</td>
+<td align="right">0.3014294</td>
+<td align="left">combined cord blood</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">20020</td>
+<td align="right">73676.50</td>
+<td align="right">224425.0</td>
+<td align="right">322731.0</td>
+<td align="right">446127</td>
+<td align="right">0.2289800</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">16847</td>
+<td align="right">102107.50</td>
+<td align="right">284936.0</td>
+<td align="right">367082.5</td>
+<td align="right">481044</td>
+<td align="right">0.6113494</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">23</td>
+<td align="right">49146.50</td>
+<td align="right">134055.0</td>
+<td align="right">311530.5</td>
+<td align="right">396120</td>
+<td align="right">0.0152868</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">45</td>
+<td align="right">101734.00</td>
+<td align="right">165997.0</td>
+<td align="right">378460.5</td>
+<td align="right">476352</td>
+<td align="right">0.2622251</td>
+<td align="left">saliva gse48472</td>
+<td align="left">birth weight</td>
+</tr>
+<tr>
+<td align="right">267030</td>
+<td align="right">297095.00</td>
+<td align="right">322174.0</td>
+<td align="right">347575.0</td>
+<td align="right">432821</td>
+<td align="right">0.9260070</td>
+<td align="left">andrews and bakulski cord blood</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">197782</td>
+<td align="right">244986.00</td>
+<td align="right">289903.0</td>
+<td align="right">408516.0</td>
+<td align="right">472954</td>
+<td align="right">0.8995413</td>
+<td align="left">blood gse35069</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">228658</td>
+<td align="right">246526.00</td>
+<td align="right">318290.0</td>
+<td align="right">420309.0</td>
+<td align="right">467583</td>
+<td align="right">0.9323479</td>
+<td align="left">blood gse35069 chen</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">122952</td>
+<td align="right">178278.00</td>
+<td align="right">290706.0</td>
+<td align="right">318990.0</td>
+<td align="right">458877</td>
+<td align="right">0.6911366</td>
+<td align="left">blood gse35069 complete</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">100610</td>
+<td align="right">234832.00</td>
+<td align="right">306094.0</td>
+<td align="right">439171.0</td>
+<td align="right">476531</td>
+<td align="right">0.8637496</td>
+<td align="left">combined cord blood</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">274263</td>
+<td align="right">278010.00</td>
+<td align="right">279206.0</td>
+<td align="right">297997.0</td>
+<td align="right">348992</td>
+<td align="right">0.8011977</td>
+<td align="left">cord blood gse68456</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">16189</td>
+<td align="right">138535.00</td>
+<td align="right">154775.0</td>
+<td align="right">201955.0</td>
+<td align="right">382666</td>
+<td align="right">0.1540562</td>
+<td align="left">gervin and lyle cord blood</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">107088</td>
+<td align="right">135970.00</td>
+<td align="right">226436.0</td>
+<td align="right">330652.0</td>
+<td align="right">333861</td>
+<td align="right">0.3999296</td>
+<td align="left">guintivano dlpfc</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+<tr>
+<td align="right">309764</td>
+<td align="right">371776.00</td>
+<td align="right">407795.0</td>
+<td align="right">413496.0</td>
+<td align="right">455650</td>
+<td align="right">0.9912964</td>
+<td align="left">saliva gse48472</td>
+<td align="left">pbconc (ng/dl)</td>
+</tr>
+</tbody></table>
+
+<p>It&#39;s not clear from the table above if using any specific cell type reference
+provides lower ranks (i.e. stronger p-values) than any other reference.</p>
+
+</body>
+
+</html>
