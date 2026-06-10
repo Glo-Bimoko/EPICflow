@@ -104,6 +104,69 @@ nextflow run main_meffil.nf \
 | `--out_dir` | `./results` | Output directory |
 | `--qc_thresh` | `0.95` | QC threshold (call rate) |
 | `--chips_per_plate` | `12` | Number of chips per plate (8 samples/chip = 96 samples/plate) |
+| `--conc_threshold` | `0.99` | Within-study duplicate flag threshold |
+| `--conc_min_snps` | `50` | Min jointly-called SNPs for a reliable within-study comparison |
+| `--h3a_bfile` | `""` | PLINK bfile prefix for H3Africa dataset (skips cross-study step if empty) |
+| `--h3a_conc_threshold` | `0.80` | Cross-study identity match threshold (lower than within-study) |
+| `--h3a_conc_min_snps` | `20` | Min SNPs for a reliable cross-study comparison |
+| `--snp_names_file` | `bin/snp-names.txt` | Authoritative list of rs-probe SNP IDs (one rsID per line). When set, all listed SNPs are sought in the H3A `.bim` regardless of EPIC QC dropout. |
+| `--h3a_featureset` | `epicv2` | meffil featureset name for positional SNP fallback |
+| `--plink` | `plink` | Path to PLINK 1.9 binary |
+
+---
+
+## Cross-Study Concordance Against H3Africa Genotyping Data
+
+The EPIC/methylation participants are a subset of a larger H3Africa cohort that
+was also genotyped with an H3Africa SNP array.  This step confirms sample
+identity across the two platforms — catching swaps, contamination, or
+mis-labelling between the methylation and genotyping arms of your study.
+
+### Recommended workflow
+
+Run H3Aflow on the H3Africa IDATs first to produce a quality-controlled PLINK
+dataset, then point this pipeline at the output bfile:
+
+```bash
+# 1. Process H3Africa IDATs through H3Aflow
+#    → produces h3a_output/qc/h3a_samples.bed/.bim/.fam (or similar)
+nextflow run Glo-Bimoko/H3Aflow \
+    --input_dir ./h3a_idats \
+    --outdir    ./h3a_output \
+    -profile    local
+
+# 2. Run this pipeline with the H3Aflow bfile as input
+nextflow run main_meffil.nf \
+    -profile local \
+    --idat_dir      ./epic_idats \
+    --out_dir       ./results \
+    --h3a_bfile     ./h3a_output/qc/h3a_samples \
+    --snp_names_file bin/snp-names.txt
+```
+
+### How the SNP filtering works
+
+`snp-names.txt` (in `bin/`) holds the canonical 65 rsID probes present on
+the EPIC/EPICv2 array.  `match_h3a_snps.r` uses this list as its extraction
+target, meaning:
+
+- **All 65 SNPs are sought in the H3A `.bim`**, even if some were flagged
+  and dropped during EPIC methylation QC (low call rate, etc.).
+- Probes matched by direct rsID in the `.bim` are extracted as-is.
+- Probes not found by rsID fall back to chromosomal position matching via
+  the meffil array manifest.
+- Any probes still unmatched are reported but do not cause the step to fail.
+- PLINK extracts only the matched variants; concordance is then computed on
+  the intersection present in both `.traw` files.
+
+Because H3Africa cohorts typically have more participants than the EPIC subset,
+the cross-study concordance output reports **all EPIC × all H3A pairs**, not
+just 1:1.  This lets you identify:
+- ✅ Confirmed matches (EPIC sample found in H3A at expected concordance)
+- ⚠ Missing matches (EPIC sample has no H3A counterpart → possible swap or
+  enrolment mismatch)
+- 🚨 Unexpected matches (EPIC sample matches a different H3A participant →
+  contamination or labelling error)
 
 ## Pipeline Steps
 
