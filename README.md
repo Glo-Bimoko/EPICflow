@@ -121,7 +121,7 @@ H3Africa array datasets regardless of the specific array version.
 ### Why pre-QC identity checking?
 
 A sample that was swapped at the laboratory stage may fail QC *because* of the
-swap — for example, if the wrong DNA was loaded into the wrong well, the sex
+swap. For example, if the wrong DNA was loaded into the wrong well, the sex
 prediction check will flag it, and the bisulfite conversion controls may be
 consistent with the wrong sample. If identity checking only runs on QC-passed
 samples, swapped samples that failed QC will never be caught. The pipeline
@@ -133,7 +133,7 @@ design mirrors the approach used in the PURE-SA-NW cohort
 
 ### Why is the id_map a CSV with `h3a_id,epic_id` column order?
 
-The H3Africa cohort is larger than the EPIC methylation cohort — not every
+The H3Africa cohort is larger than the EPIC methylation cohort. Not every
 genotyped participant was processed for methylation. The id_map records only
 those participants enrolled in both studies. Column order is `h3a_id,epic_id`
 because the H3A side is the reference (the larger dataset); H3A IDs that have
@@ -259,7 +259,7 @@ idats/
 The filename format is `<BeadChipBarcode>_<SentrixPosition>_<Color>.idat`.
 The BeadChip barcode and Sentrix position together uniquely identify a sample
 well. The pipeline extracts the `Sample_ID` (e.g. `G007`) by reading the
-samplesheet — see below.
+samplesheet, see below.
 
 ### Samplesheet format
 
@@ -423,20 +423,20 @@ IDAT files
 
 ### Step details
 
-**Step 1 —> GROUP_BY_PLATE**
+**Step 1 -> GROUP_BY_PLATE**
 
 Scans `--idat_dir` for subdirectories. Each subdirectory is treated as one
 plate. Chips within a plate are identified from the IDAT filenames (the barcode
 portion, e.g. `209042110017`). A manifest file listing chip IDs is written for
 each plate to `results/plate_manifests/`.
 
-**Step 2 —> CREATE_SAMPLESHEETS**
+**Step 2 -> CREATE_SAMPLESHEETS**
 
 For each plate manifest, reads the IDAT filenames and constructs a samplesheet
 CSV in the format meffil expects: `Sample_Name`, `Basename` (full path to IDAT
 prefix), `Sentrix_ID`, `Sentrix_Position`. Runs in parallel for all plates.
 
-**Step 3 —> PLATE_QC**
+**Step 3 -> PLATE_QC**
 
 Calls `plate_qc_meffil.r` on each plate independently. This script:
 - Runs `meffil.qc()` to produce one QC object per sample
@@ -448,12 +448,12 @@ Calls `plate_qc_meffil.r` on each plate independently. This script:
 
 Plates run in parallel. A plate with 96 samples typically takes 30–60 minutes.
 
-**Step 3B —> MERGE_SAMPLESHEETS**
+**Step 3B -> MERGE_SAMPLESHEETS**
 
 Concatenates all per-plate samplesheets into a single
 `combined_samplesheet.csv` for use by the combined normalization step.
 
-**Step 4 —> COMBINED_NORMALIZE**
+**Step 4 -> COMBINED_NORMALIZE**
 
 Calls `combined_normalize_meffil.r`, which:
 - Loads all QC objects for QC-passed samples
@@ -464,7 +464,7 @@ Calls `combined_normalize_meffil.r`, which:
   p-value is < 0.05
 - Writes final beta values, M values, sample info, and PCA plots
 
-**Step 5 —> GENOTYPE_CONCORDANCE**
+**Step 5 -> GENOTYPE_CONCORDANCE**
 
 Calls `extract_snp_betas.r` on QC-passed samples to extract `$snp.betas`
 from each QC object, convert continuous betas to genotype calls
@@ -473,7 +473,7 @@ from each QC object, convert continuous betas to genotype calls
 concordance across EPIC samples. Pairs at or above `--conc_threshold`
 (default 0.99) are flagged as likely duplicates.
 
-**Step 5-PRE —> IDENTITY_CHECK_PRE_QC**
+**Step 5-PRE -> IDENTITY_CHECK_PRE_QC**
 
 Identical to the H3A concordance logic (Step 6) but runs on all samples
 before QC filtering by passing `--pre_qc` to `extract_snp_betas.r`. This
@@ -482,7 +482,7 @@ SNP fingerprint to the check. A swapped sample that failed QC precisely
 because it was swapped will be identified here. This step runs in parallel
 with Step 3B/4 because it depends only on `PLATE_QC` output.
 
-**Step 6 —> H3A_CONCORDANCE**
+**Step 6 -> H3A_CONCORDANCE**
 
 First, `match_h3a_snps.r`:
 - Loads the meffil manifest for `--h3a_featureset` to get GRCh37 chr:pos
@@ -646,35 +646,35 @@ results/
 
 Open in a browser and share with the wet lab. Key sections:
 
-**Call rate distribution** — histogram of per-sample call rates. The vertical
+**Call rate distribution** -> histogram of per-sample call rates. The vertical
 line shows `--qc_thresh`. Samples to the left of the line are excluded.
 A cluster of failures separated from the main distribution suggests a specific
 chip failure; review `bisulfite_by_chip.png` for that plate.
 
-**Sex prediction** —> scatter plot of X vs Y chromosome methylation. Samples
+**Sex prediction** -> scatter plot of X vs Y chromosome methylation. Samples
 should cluster into two groups (XX upper-left, XY lower-right). Any point in
 the wrong cluster, or isolated between clusters, is a likely sample swap or
 sex mismatch. Cross-reference with the `Collected_Gender` column.
 
-**Control probe heatmap** —> rows are the 7 control probe categories (bisulfite
+**Control probe heatmap** -> rows are the 7 control probe categories (bisulfite
 conversion, extension, staining, hybridisation, specificity, negative, target
 removal). Columns are chips. A column with uniformly poor control scores
 indicates a chip-level failure.
 
-**Bisulfite conversion by chip** —> bisulfite conversion efficiency should be
+**Bisulfite conversion by chip** -> bisulfite conversion efficiency should be
 high (> 80%) and consistent across chips. A chip with low conversion failed in
 the laboratory; all samples from it should be considered unreliable.
 
 ### Normalization report (`normalized_combined/normalization_report.html`)
 
-**PCA before ComBat** —> if samples cluster visibly by plate colour, cross-plate
+**PCA before ComBat** -> if samples cluster visibly by plate colour, cross-plate
 batch effects are present. ComBat correction is applied automatically.
 
-**PCA after ComBat** —> samples should no longer cluster by plate. If they still
+**PCA after ComBat** -> samples should no longer cluster by plate. If they still
 do, the plates may be confounded with biological variation (e.g. all cases on
 one plate, all controls on another). Review plate assignment before proceeding.
 
-**ComBat application status** —> the report states whether ComBat was applied
+**ComBat application status** -> the report states whether ComBat was applied
 and the p-value that triggered it (< 0.05 threshold).
 
 ### Within-study concordance (`concordance/methylation_snps_concordance_report.html`)
@@ -684,7 +684,7 @@ the EPIC cohort. Unrelated individuals typically cluster around 0.25–0.45
 (expected sharing by chance with 65 SNPs). Pairs at or above 0.99 are flagged
 as likely duplicates.
 
-**Flagged pairs** —> inspect `methylation_snps_flagged_duplicates.tsv`. For each
+**Flagged pairs** -> inspect `methylation_snps_flagged_duplicates.tsv`. For each
 flagged pair, check:
 - Are the `Sample_ID`s the same? If yes, true duplicate, remove one.
 - Are they different IDs with concordance = 1.00? Likely a sample swap
@@ -734,8 +734,8 @@ echo "h3a_id,epic_id" > samplesheets/id_bridge.csv
 ### Classification categories
 
 For each EPIC sample, the pipeline records:
-- `assigned_score` —> concordance with the H3A sample specified in the id_map
-- `best_score` —> concordance with the best-matching H3A sample in the whole cohort
+- `assigned_score` -> concordance with the H3A sample specified in the id_map
+- `best_score` -> concordance with the best-matching H3A sample in the whole cohort
 
 These two values together drive the classification:
 
@@ -754,22 +754,22 @@ summary statistics, not the classification logic.
 
 ### What to do with each category
 
-**`correct_assignment`** —> no action required.
+**`correct_assignment`** -> no action required.
 
-**`swap_high_confidence`** —> check the `best_h3a` column in
+**`swap_high_confidence`** -> check the `best_h3a` column in
 `per_sample_verdict.tsv`. The correct H3A ID is the `best_h3a` value. Check
 whether any other EPIC sample claims that H3A ID as its assigned match (a
 reciprocal swap). Update your sample tracking accordingly and relabel or
 exclude as appropriate.
 
-**`swap_moderate_confidence`** —> do not relabel automatically. Pull the raw
+**`swap_moderate_confidence`** -> do not relabel automatically. Pull the raw
 concordance values from `concordance_pairs.tsv` and inspect the distribution
 for this sample. If the best score is clearly separated from the second-best
 (e.g. 0.85 vs 0.40), the swap is likely real. If the top several H3A matches
 are all close together (e.g. 0.83, 0.81, 0.79), the signal is ambiguous,
 consider excluding the sample.
 
-**`outside_dataset`** —> the `best_h3a` column contains the H3A ID of the
+**`outside_dataset`** -> the `best_h3a` column contains the H3A ID of the
 participant whose DNA is in the tube. Check your enrolment records. This can
 indicate: (a) a tube labelling error where the wrong participant's sample was
 collected, (b) cross-contamination during DNA extraction, or (c) a participant
@@ -777,7 +777,7 @@ who was genotyped but whose methylation sample was excluded from the EPIC
 run for an unrelated reason (in which case this is a false positive,
 check the id_map to confirm they are absent).
 
-**`low_confidence`** —> most commonly this means the participant was not
+**`low_confidence`** -> most commonly this means the participant was not
 present in the H3A dataset at all (recruited for methylation only, or the
 H3A data failed QC for that person). It can also indicate severe DNA
 degradation. Cross-reference with the within-study concordance report, if
