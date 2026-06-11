@@ -1,0 +1,12 @@
+# Nextflow work directories and logs
+work/
+.nextflow/
+.nextflow.log*
+.nextflow.log
+
+# Pipeline results (large data files)
+results/
+
+#inputs
+idats/
+h3a_output/
