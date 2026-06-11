@@ -78,7 +78,7 @@ the [Meffil wiki](https://github.com/perishky/meffil/wiki/Full-pipeline-for-anal
 
 The EPIC/EPICv2 array contains 65 rs-prefixed probes that target non-CpG SNP
 positions. Because these probes measure allelic signal rather than methylation,
-bisulfite treatment does not alter their readout — the signal clusters tightly
+bisulfite treatment does not alter their readout. The signal clusters tightly
 at beta ≈ 0.0 (AA homozygote), 0.5 (AB heterozygote), and 1.0 (BB homozygote).
 These 65 probes act as a genotype fingerprint embedded within every methylation
 array, enabling sample identity verification without any additional genotyping.
@@ -127,9 +127,7 @@ consistent with the wrong sample. If identity checking only runs on QC-passed
 samples, swapped samples that failed QC will never be caught. The pipeline
 therefore runs identity checking twice: once immediately after `PLATE_QC` on
 all samples including failures (`IDENTITY_CHECK_PRE_QC`), and once after
-`COMBINED_NORMALIZE` on QC-passed samples only (`H3A_CONCORDANCE`). This
-design mirrors the approach used in the PURE-SA-NW cohort
-(`methylation_genotype_matching.R`, Sinenhlanhla Mthembu et al.).
+`COMBINED_NORMALIZE` on QC-passed samples only (`H3A_CONCORDANCE`).
 
 ### Why is the id_map a CSV with `h3a_id,epic_id` column order?
 
@@ -276,6 +274,41 @@ IDs used in the H3Aflow output (`.fam` IID column) and in the id_map CSV.
 `Collected_Gender` can be `Unknown` if sex is not recorded; meffil will predict
 sex from X/Y chromosome methylation regardless.
 
+### Sample map CSV (`--sample_map`, recommended)
+
+EPICflow can accept a sample map that bridges raw Illumina array identifiers
+(BeadChip barcode + Sentrix position) to study-level participant IDs. When
+provided, every samplesheet, QC report, beta-value matrix column, and
+concordance output will carry participant IDs (e.g. `G001`) instead of raw
+barcode strings (e.g. `208789590164_R01C01`), making all results
+participant-centric and directly mergeable with clinical metadata.
+
+**Required columns** (column names are matched case-insensitively):
+
+| Column | Description |
+|--------|-------------|
+| `Sample ID` | Study participant identifier (e.g. `G001`) |
+| `BeadChip Barcode` | Illumina chip barcode (numeric, e.g. `208789590164`) |
+| `Sentrix Position` | Position on chip (e.g. `R01C01`) |
+
+Optional columns recognised automatically:
+
+| Column | Description |
+|--------|-------------|
+| `Collected Gender` / `Sex` / `Gender` | Biological sex; mapped to `M` / `F` / `NA` for meffil |
+| `Plate Number` | Plate identifier; used to label the `Plate_ID` column |
+
+The file may cover all plates at once — a single CSV for the entire study is
+the intended use. The pipeline filters to the rows relevant to each plate
+during samplesheet creation.
+
+```
+--sample_map ./samplesheets/all_6_epic.csv
+```
+
+If `--sample_map` is not provided, the pipeline falls back to using raw
+barcode basenames as `Sample_Name` (original behaviour).
+
 ### H3A PLINK dataset (for cross-study concordance only)
 
 The H3Africa genotyping dataset must be in PLINK binary format
@@ -336,6 +369,7 @@ a `nextflow.config` file.
 | `--idat_dir` | `./idats` | Directory containing plate subdirectories of IDAT files |
 | `--out_dir` | `./results` | Root output directory |
 | `--qc_thresh` | `0.95` | Per-sample QC call rate threshold. Samples with fewer than this fraction of probes detected (detection p < 0.01) are excluded from normalization |
+| `--sample_map` | `""` | Path to a CSV mapping `BeadChip Barcode` + `Sentrix Position` → `Sample ID`. When provided, all outputs use participant IDs instead of raw barcode strings. See [Sample map CSV](#sample-map-csv---sample_map-recommended) |
 | `--conda_env` | `env_meffil_epicv2.yml` | Path to the conda environment YAML |
 | `--rscript` | `Rscript` | Path to the Rscript binary (override if using a specific R installation) |
 
@@ -506,12 +540,22 @@ Then, `cross_study_concordance.py`:
 
 ### Minimal run (no cross-study checking)
 
-Use this when you only have EPIC methylation data and want QC, normalization,
+To be used when one only has EPIC methylation data and want QC, normalization,
 and within-study identity checking:
 
 ```bash
 conda activate meffil_epicv2
 
+nextflow run main_meffil.nf \
+    -profile local \
+    --idat_dir  ./idats \
+    --out_dir   ./results \
+    --sample_map ./samplesheets/all_6_epic.csv
+```
+
+Omit `--sample_map` to use raw barcode basenames (original behaviour):
+
+```bash
 nextflow run main_meffil.nf \
     -profile local \
     --idat_dir ./idats \
@@ -526,10 +570,11 @@ have prepared the id_map CSV:
 ```bash
 nextflow run main_meffil.nf \
     -profile local \
-    --idat_dir  ./idats \
-    --out_dir   ./results \
-    --h3a_bfile ./h3a_output/qc/h3a_samples \
-    --id_map    ./samplesheets/id_bridge.csv
+    --idat_dir   ./idats \
+    --out_dir    ./results \
+    --sample_map ./samplesheets/all_6_epic.csv \
+    --h3a_bfile  ./h3a_output/qc/h3a_samples \
+    --id_map     ./samplesheets/id_bridge.csv
 ```
 
 ### Running on CHPC Lengau (PBS)
@@ -538,10 +583,11 @@ nextflow run main_meffil.nf \
 nextflow run main_meffil.nf \
     -profile pbs \
     -c nextflow_meffil.config \
-    --idat_dir  /scratch/users/yourname/idats \
-    --out_dir   /scratch/users/yourname/results \
-    --h3a_bfile /scratch/users/yourname/h3a_output/qc/h3a_samples \
-    --id_map    /scratch/users/yourname/samplesheets/id_bridge.csv
+    --idat_dir   /scratch/users/yourname/idats \
+    --out_dir    /scratch/users/yourname/results \
+    --sample_map /scratch/users/yourname/samplesheets/all_6_epic.csv \
+    --h3a_bfile  /scratch/users/yourname/h3a_output/qc/h3a_samples \
+    --id_map     /scratch/users/yourname/samplesheets/id_bridge.csv
 ```
 
 ### Resuming an interrupted run
@@ -910,11 +956,6 @@ microarray expression data using empirical Bayes methods.
 *Biostatistics*, 8(1), 118–127.
 https://doi.org/10.1093/biostatistics/kxj037
 
-**H3Africa genotyping array**
-Gurdasani, D., et al. (2019). Uganda Genome Resource enables insights into
-population history and genomic discovery in Africa.
-*Cell*, 179(4), 984–1002.
-https://doi.org/10.1016/j.cell.2019.10.004
 
 **Nextflow**
 Di Tommaso, P., et al. (2017). Nextflow enables reproducible computational
@@ -932,6 +973,5 @@ EPICflow and H3Aflow are designed to eventually be unified into **MetaFlow**,
 a single end-to-end pipeline that processes H3Africa SNP array IDATs and
 EPIC methylation array IDATs together from raw files through GWAS, EWAS, and
 multi-omics integration. MetaFlow will subsume the cross-study concordance
-steps currently handled by both pipelines separately, add pharmacogenomics
-and CNV analysis modules, and support joint analysis of the full H3Africa
+steps currently handled by both pipelines separately, and support joint analysis of the full H3Africa
 consortium dataset across 30+ countries.

@@ -23,6 +23,19 @@ params.rscript               = 'Rscript'
 params.conc_threshold        = 0.99   // flag pairs with concordance >= this as duplicates
 params.conc_min_snps         = 50     // min jointly-called SNPs for a reliable comparison
 
+// ── Sample ID mapping ──────────────────────────────────────────────────────
+// Optional CSV that maps BeadChip barcodes to study-level participant IDs.
+// When provided, all samplesheets, QC reports, and output matrices will use
+// the Sample_ID column (e.g. "G001") instead of raw barcode strings
+// (e.g. "208789590164_R01C01").
+//
+// Required columns (case-insensitive):
+//   Sample ID | BeadChip Barcode | Sentrix Position
+//
+// Example: --sample_map ./samplesheets/all_6_epic.csv
+// Leave empty to use raw barcode basenames (original behaviour).
+params.sample_map            = ""     // e.g. "./samplesheets/all_6_epic.csv"
+
 // ── H3Africa cross-study concordance ──────────────────────────────────────
 // Set --h3a_bfile to enable cross-study ID checking (Steps 5-pre and 6).
 // Provide the PLINK bfile prefix (no extension) for the H3Africa genotyping
@@ -60,6 +73,7 @@ log.info """
          IDAT directory      : ${IDAT_DIR}
          Output directory    : ${params.out_dir}
          QC threshold        : ${params.qc_thresh}
+         Sample map          : ${params.sample_map ?: '(not set — using raw barcode basenames)'}
          Normalization       : Combined (all plates together)
          Concordance cutoff  : ${params.conc_threshold}
          Min SNPs (reliable) : ${params.conc_min_snps}
@@ -100,17 +114,20 @@ process CREATE_SAMPLESHEETS {
 
     input:
     path plate_manifest
+    path sample_map   // optional; empty file when not provided
 
     output:
     tuple path(plate_manifest), path("samplesheets/*.csv"), emit: plate_with_samplesheet
 
     script:
-    def plate_id = plate_manifest.baseName
+    def plate_id    = plate_manifest.baseName
+    def map_arg     = (sample_map.name != 'NO_MAP') ? "--sample_map ${sample_map}" : ""
     """
     mkdir -p samplesheets
     ${params.rscript} ${projectDir}/bin/create_samplesheet.r \
         ${plate_manifest} \
-        samplesheets/${plate_id}_samplesheet.csv
+        samplesheets/${plate_id}_samplesheet.csv \
+        ${map_arg}
     """
 }
 
@@ -403,9 +420,22 @@ workflow {
     // Step 1
     GROUP_BY_PLATE()
 
-    // Step 2
+    // Step 2 — build per-plate samplesheets, resolving participant IDs when a
+    // sample map is provided.  The map is broadcast to every plate process via
+    // a value channel so that all plates share the same file without copying.
     plate_manifests_ch = GROUP_BY_PLATE.out.plate_manifests.flatten()
-    CREATE_SAMPLESHEETS(plate_manifests_ch)
+
+    // Create a channel for the optional sample map:
+    //   • when --sample_map is set, point to the real file
+    //   • when absent, emit a sentinel file named "NO_MAP" (no disk I/O needed;
+    //     the process script checks the name and omits the --sample_map flag)
+    if (params.sample_map) {
+        sample_map_ch = Channel.value(file(params.sample_map))
+    } else {
+        sample_map_ch = Channel.value(file("NO_MAP"))
+    }
+
+    CREATE_SAMPLESHEETS(plate_manifests_ch, sample_map_ch)
 
     // Step 3
     PLATE_QC(CREATE_SAMPLESHEETS.out.plate_with_samplesheet)
