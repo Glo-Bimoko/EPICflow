@@ -10,3 +10,6 @@ results/
 #inputs
 idats/
 h3a_output/
+
+./all_6_epic.csv
+./ID_map.csv
