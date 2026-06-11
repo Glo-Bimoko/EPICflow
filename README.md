@@ -1,4 +1,4 @@
-# EPICflow — Meffil-Based Methylation QC and Normalization Pipeline
+# EPICflow -> Meffil-Based Methylation QC and Normalization Pipeline
 
 ## Table of Contents
 
