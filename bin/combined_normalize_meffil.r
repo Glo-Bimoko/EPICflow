@@ -1,35 +1,87 @@
 #!/usr/bin/env Rscript
-# combined_normalize_meffil.R
-# Normalize all plates together (combined normalization)
-# This provides a single unified normalization across all samples
+# bin/combined_normalize_meffil.r
+# Combined functional normalization across all plates using meffil.
+#
+# References:
+#   https://github.com/perishky/meffil/wiki/Sample-QC
+#   https://github.com/perishky/meffil/wiki/Full-pipeline-for-analysing-massive-datasets
+#   Min et al. (2018) Bioinformatics 34:3983-3989
+#
+# Usage:
+#   Rscript combined_normalize_meffil.r \
+#       <qc_objects_dir> <passed_samples_dir> <qc_summaries_dir> \
+#       <combined_samplesheet> <out_dir> <qc_threshold> [max_gb] [n_pcs]
+#
+# Arguments:
+#   qc_objects_dir        : directory containing per-plate *_qc_objects.rds
+#   passed_samples_dir    : directory containing per-plate *_passed_samples.txt
+#   qc_summaries_dir      : directory containing per-plate *_qc_summary.rds
+#                           (used to collect bad CpGs for cpglist.remove)
+#   combined_samplesheet  : merged samplesheet CSV from MERGE_SAMPLESHEETS
+#   out_dir               : output directory
+#   qc_threshold          : call-rate threshold (passed through for reporting)
+#   max_gb                : (optional) RAM ceiling in GB, default 32.
+#                           Controls max.bytes in meffil.normalize.samples().
+#   n_pcs                 : (optional) number of control-probe PCs for FN.
+#                           If 0 or omitted, determined automatically via
+#                           meffil.plot.pc.fit() cross-validated scree plot.
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 5) {
-  stop("Usage: Rscript combined_normalize_meffil.R <qc_objects_dir> <passed_samples_dir> <combined_samplesheet> <out_dir> <qc_threshold>")
+if (length(args) < 6) {
+  stop(paste(
+    "Usage: Rscript combined_normalize_meffil.r",
+    "<qc_objects_dir> <passed_samples_dir> <qc_summaries_dir>",
+    "<combined_samplesheet> <out_dir> <qc_threshold> [max_gb] [n_pcs]"
+  ))
 }
 
-qc_objects_dir <- args[1]
-passed_samples_dir <- args[2]
-combined_samplesheet_file <- args[3]
-out_dir <- args[4]
-qc_threshold <- as.numeric(args[5])
+qc_objects_dir          <- args[1]
+passed_samples_dir      <- args[2]
+qc_summaries_dir        <- args[3]
+combined_samplesheet_file <- args[4]
+out_dir                 <- args[5]
+qc_threshold            <- as.numeric(args[6])
+max_gb                  <- if (length(args) >= 7) as.numeric(args[7]) else 32
+n_pcs_arg               <- if (length(args) >= 8) as.integer(args[8]) else 0L
 
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
 cat("\n", rep("=", 60), "\n", sep = "")
 cat("COMBINED NORMALIZATION (All Plates Together)\n")
 cat(rep("=", 60), "\n\n")
-cat("QC threshold:", qc_threshold, "\n")
+cat("QC threshold  :", qc_threshold, "\n")
+cat("Memory ceiling:", max_gb, "GB\n")
+cat("n_pcs arg     :", if (n_pcs_arg == 0L) "auto" else n_pcs_arg, "\n\n")
 
-# CRITICAL: Set single-threaded mode BEFORE loading any packages
-Sys.setenv(OMP_NUM_THREADS = 1)
-Sys.setenv(MKL_NUM_THREADS = 1)
-Sys.setenv(OPENBLAS_NUM_THREADS = 1)
-Sys.setenv(NUMEXPR_NUM_THREADS = 1)
-Sys.setenv(OMP_THREAD_LIMIT = 1)
+# ── Threading ──────────────────────────────────────────────────────────────
+# meffil.normalize.samples() parallelises safely — each sample is normalised
+# independently (paper Section 2.2).  Use all available cores.
+n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK",
+                      Sys.getenv("PBS_NUM_PPN", 4)))
+cat("Cores         :", n_cores, "\n")
+options(mc.cores = n_cores)
 
-cat("Threading environment set to single-threaded mode\n")
-options(mc.cores = 1)
+# max.bytes per fork — same formula as plate_qc.
+#
+# FIX: use as.numeric() (64-bit double) instead of as.integer() (32-bit signed).
+# as.integer() overflows to NA for values > 2,147,483,647 (~2.1 GB), which
+# happens whenever (max_gb * 0.75 * 1024^3) / n_cores exceeds that ceiling —
+# e.g. max_gb=28, n_cores=4 yields ~5.6 GB, silently becoming NA.
+# meffil then crashes with:
+#   "Error in if (n.fun < 1): missing value where TRUE/FALSE needed"
+max_bytes <- as.numeric((max_gb * 0.75 * 1024^3) / n_cores)
+
+# Defensive guard: if max_bytes is somehow NA or implausibly small,
+# fall back to a safe 1 GB per fork rather than crashing deep inside meffil.
+if (is.na(max_bytes) || max_bytes < 1e6) {
+  warning(sprintf(
+    "max_bytes calculation produced an invalid value (%s). Falling back to 1 GB per fork. Check that max_gb ('%s') is a valid positive number.",
+    max_bytes, args[7]
+  ))
+  max_bytes <- 1e9
+}
+
+cat("max.bytes/fork:", format(max_bytes, big.mark = ",", scientific = FALSE), "bytes\n\n")
 
 suppressPackageStartupMessages({
   library(meffil)
@@ -37,511 +89,447 @@ suppressPackageStartupMessages({
 })
 
 # ============================================================
-# STEP 1: LOAD ALL QC OBJECTS AND PASSED SAMPLES
+# STEP 1: LOAD QC OBJECTS AND FILTER TO PASSED SAMPLES
 # ============================================================
-cat("--- STEP 1: Loading data ---\n")
+cat("--- STEP 1: Loading QC objects ---\n")
 
-# Load combined samplesheet
-cat("Loading combined samplesheet:", basename(combined_samplesheet_file), "\n")
-combined_samplesheet <- read.csv(combined_samplesheet_file, stringsAsFactors = FALSE)
-cat("Combined samplesheet has", nrow(combined_samplesheet), "samples\n")
-
-# Find all QC object files
-qc_object_files <- list.files(qc_objects_dir, 
+qc_object_files <- list.files(qc_objects_dir,
                                pattern = "_qc_objects\\.rds$",
-                               full.names = TRUE,
-                               recursive = FALSE)
+                               full.names = TRUE)
+if (length(qc_object_files) == 0)
+  stop("No *_qc_objects.rds files found in: ", qc_objects_dir)
 
-if (length(qc_object_files) == 0) {
-  stop("No QC object files found in ", qc_objects_dir)
-}
+cat("Plates found:", length(qc_object_files), "\n")
 
-cat("Found", length(qc_object_files), "plate(s)\n")
-
-# Load all QC objects and combine
 all_qc_objects <- list()
-plate_info <- data.frame(
-  Sample = character(),
-  Plate = character(),
-  stringsAsFactors = FALSE
-)
+plate_of_sample <- character(0)   # named vector: sample -> plate_id
 
-for (qc_file in qc_object_files) {
-  plate_id <- sub("_qc_objects\\.rds$", "", basename(qc_file))
-  cat("  Loading", plate_id, "...\n")
-  
-  plate_qc <- readRDS(qc_file)
-  
-  # Add to combined list
-  for (sample_name in names(plate_qc)) {
-    all_qc_objects[[sample_name]] <- plate_qc[[sample_name]]
-    
-    plate_info <- rbind(plate_info, data.frame(
-      Sample = sample_name,
-      Plate = plate_id,
-      stringsAsFactors = FALSE
-    ))
+for (f in qc_object_files) {
+  plate_id  <- sub("_qc_objects\\.rds$", "", basename(f))
+  plate_qc  <- readRDS(f)
+  cat("  ", plate_id, ":", length(plate_qc), "QC objects\n")
+  for (s in names(plate_qc)) {
+    all_qc_objects[[s]]  <- plate_qc[[s]]
+    plate_of_sample[[s]] <- plate_id
   }
+  rm(plate_qc); gc()
 }
+cat("Total QC objects loaded:", length(all_qc_objects), "\n")
 
-cat("\nTotal samples loaded:", length(all_qc_objects), "\n")
+# ── Passed samples ─────────────────────────────────────────────────────────
+cat("\n--- STEP 1b: Loading passed-sample lists ---\n")
 
-# ============================================================
-# STEP 2: LOAD PASSED SAMPLES FROM ALL PLATES
-# ============================================================
-cat("\n--- STEP 2: Loading passed samples ---\n")
+passed_files <- list.files(passed_samples_dir,
+                            pattern = "_passed_samples\\.txt$",
+                            full.names = TRUE)
 
-passed_sample_files <- list.files(passed_samples_dir,
-                                  pattern = "_passed_samples\\.txt$",
-                                  full.names = TRUE,
-                                  recursive = FALSE)
+if (length(passed_files) == 0)
+  stop("No *_passed_samples.txt files found in: ", passed_samples_dir)
 
-all_passed_samples <- character()
+all_passed <- character(0)
+for (f in passed_files) {
+  plate_id <- sub("_passed_samples\\.txt$", "", basename(f))
 
-for (passed_file in passed_sample_files) {
-  plate_id <- sub("_passed_samples\\.txt$", "", basename(passed_file))
-  samples <- readLines(passed_file)
-  all_passed_samples <- c(all_passed_samples, samples)
-  cat("  ", plate_id, ":", length(samples), "passed samples\n")
+  # FIX: readLines() on an empty file (written by plate_qc when meffil.qc()
+  # crashed in a prior run) returns character(0), not an error. Catch this
+  # explicitly and warn so the user knows which plate produced no passing
+  # samples — it almost always means the plate_qc step needs to be re-run
+  # (e.g. after fixing the max_bytes integer-overflow bug in plate_qc_meffil.r).
+  samples <- tryCatch(
+    readLines(f, warn = FALSE),
+    error = function(e) {
+      cat("  WARNING: could not read", basename(f), "—", conditionMessage(e), "\n")
+      character(0)
+    }
+  )
+
+  # Strip any blank lines that could arise from platform line-ending differences
+  samples <- samples[nzchar(trimws(samples))]
+
+  cat("  ", plate_id, ":", length(samples), "passed\n")
+
+  if (length(samples) == 0) {
+    cat("  WARNING: no passed samples for", plate_id,
+        "— was plate_qc_meffil.r run successfully for this plate?\n")
+  }
+
+  all_passed <- c(all_passed, samples)
 }
+cat("Total passed samples:", length(all_passed), "\n")
 
-cat("\nTotal passed samples:", length(all_passed_samples), "\n")
-
-# Filter QC objects to only include passed samples
-qc_objects_passed <- all_qc_objects[names(all_qc_objects) %in% all_passed_samples]
+qc_objects_passed <- all_qc_objects[names(all_qc_objects) %in% all_passed]
 cat("QC objects for normalization:", length(qc_objects_passed), "\n")
 
 if (length(qc_objects_passed) == 0) {
-  stop("No samples passed QC for normalization")
+  stop(paste0(
+    "No samples passed QC — cannot normalise.\n",
+    "  Possible causes:\n",
+    "  1. plate_qc_meffil.r crashed before writing *_passed_samples.txt\n",
+    "     (check per-plate logs; look for the 'NAs introduced by coercion'\n",
+    "      warning which indicates the max_bytes integer-overflow bug).\n",
+    "  2. All samples genuinely failed the call-rate threshold (", qc_threshold, ").\n",
+    "     Inspect the per-plate *_qc_metrics.csv files in qc_results/.\n",
+    "  3. Sample names in *_passed_samples.txt do not match names(qc_objects).\n",
+    "     This can happen if the samplesheet Sample_Name column was changed\n",
+    "     between plate_qc and combined_normalize runs."
+  ))
 }
 
 # ============================================================
-# STEP 3: COMBINED FUNCTIONAL NORMALIZATION
+# STEP 2: COLLECT BAD CpGS FROM PER-PLATE QC SUMMARIES
 # ============================================================
-cat("\n--- STEP 3: Combined functional normalization ---\n")
-cat("Normalizing all", length(qc_objects_passed), "samples together\n")
+# The meffil wiki and paper recommend passing cpglist.remove to
+# meffil.normalize.samples() to exclude probes flagged as poor quality
+# during QC (high fraction of undetected calls or low bead numbers).
+# We aggregate bad.cpgs$name across all per-plate QC summaries.
+# ============================================================
+cat("\n--- STEP 2: Collecting bad CpGs from QC summaries ---\n")
 
-# Determine number of PCs
-n_pcs <- min(10, max(2, floor(length(qc_objects_passed) / 10)))
-cat("Using", n_pcs, "principal components\n")
+summary_files <- list.files(qc_summaries_dir,
+                             pattern = "_qc_summary\\.rds$",
+                             full.names = TRUE)
 
-# Perform functional normalization on all samples together
-cat("Computing normalization parameters...\n")
+bad_cpgs <- character(0)
 
-tryCatch({
-  norm_params <- meffil.normalize.quantiles(
-    qc.objects = qc_objects_passed,
-    number.pcs = n_pcs,
-    verbose = TRUE
-  )
-  
-  cat("Normalization parameters created successfully\n")
-  
-  cat("Applying normalization...\n")
-  beta_matrix <- meffil.normalize.samples(
-    norm_params,
-    just.beta = TRUE,
-    verbose = TRUE
-  )
-  
-  cat("Beta normalization complete\n")
-  cat("  Dimensions:", paste(dim(beta_matrix), collapse=" x "), "\n")
-  
-  # Get M values
-  cat("Computing M values...\n")
-  M_matrix <- meffil.normalize.samples(
-    norm_params,
-    just.beta = FALSE,
-    verbose = FALSE
-  )
-  
-  # Handle different return types
-  if (is.list(M_matrix) && "M" %in% names(M_matrix)) {
-    M_matrix <- M_matrix$M
-  } else if (is.list(M_matrix) && "beta" %in% names(M_matrix)) {
-    M_matrix <- log2(M_matrix$beta / (1 - M_matrix$beta))
-  } else if (!is.matrix(M_matrix)) {
-    M_matrix <- log2(beta_matrix / (1 - beta_matrix))
+if (length(summary_files) == 0) {
+  cat("WARNING: No *_qc_summary.rds files found in:", qc_summaries_dir, "\n")
+  cat("         Proceeding without cpglist.remove — suboptimal but not fatal.\n")
+} else {
+  for (f in summary_files) {
+    plate_id <- sub("_qc_summary\\.rds$", "", basename(f))
+    qs       <- readRDS(f)
+    if (!is.null(qs$bad.cpgs) && nrow(qs$bad.cpgs) > 0) {
+      n_bad <- nrow(qs$bad.cpgs)
+      bad_cpgs <- union(bad_cpgs, qs$bad.cpgs$name)
+      cat("  ", plate_id, ":", n_bad, "bad CpGs\n")
+    } else {
+      cat("  ", plate_id, ": no bad CpGs\n")
+    }
+    rm(qs); gc()
   }
-  
-  norm_matrix <- list(
-    beta = beta_matrix,
-    M = M_matrix
-  )
-  
-  if (is.null(norm_matrix$beta) || ncol(norm_matrix$beta) == 0) {
-    stop("Normalization failed: no samples in output matrix!")
-  }
-  
-  cat("✓ Combined normalization completed\n")
-  cat("  Samples:", ncol(norm_matrix$beta), "\n")
-  cat("  Probes:", nrow(norm_matrix$beta), "\n")
-  
-}, error = function(e) {
-  cat("\n✗ ERROR during normalization:", conditionMessage(e), "\n\n")
-  
-  if (grepl("pthread", conditionMessage(e), ignore.case = TRUE)) {
-    cat("This is the pthread_create error!\n")
-    cat("\nSOLUTION: Reinstall preprocessCore without threading:\n")
-    cat("  remove.packages('preprocessCore')\n")
-    cat("  BiocManager::install('preprocessCore', configure.args='--disable-threading')\n\n")
-  }
-  
-  stop("Normalization failed. See error message above.")
-})
-
-# ============================================================
-# STEP 4: SAVE COMBINED NORMALIZED DATA
-# ============================================================
-cat("\n--- STEP 4: Saving combined normalized data ---\n")
-
-# Save combined data
-write.csv(norm_matrix$beta, 
-          file.path(out_dir, "BetaValues_all_plates_combined.csv"),
-          row.names = TRUE)
-cat("✓ Combined beta values saved\n")
-
-write.csv(norm_matrix$M,
-          file.path(out_dir, "MValues_all_plates_combined.csv"),
-          row.names = TRUE)
-cat("✓ Combined M values saved\n")
-
-# Save normalization parameters
-saveRDS(norm_params, file.path(out_dir, "combined_norm_params.rds"))
-cat("✓ Normalization parameters saved\n")
-
-# Add plate information to sample info
-sample_info_combined <- plate_info[plate_info$Sample %in% colnames(norm_matrix$beta), ]
-sample_info_combined <- sample_info_combined[match(colnames(norm_matrix$beta), 
-                                                    sample_info_combined$Sample), ]
-
-write.csv(sample_info_combined,
-          file.path(out_dir, "sample_info_combined.csv"),
-          row.names = FALSE)
-cat("✓ Sample information saved\n")
-
-# ============================================================
-# STEP 5: SPLIT BY PLATE (optional for plate-level analysis)
-# ============================================================
-cat("\n--- STEP 5: Creating plate-specific subsets ---\n")
-
-plates <- unique(sample_info_combined$Plate)
-cat("Creating", length(plates), "plate-specific files\n")
-
-plate_dir <- file.path(out_dir, "by_plate")
-dir.create(plate_dir, showWarnings = FALSE, recursive = TRUE)
-
-for (plate in plates) {
-  plate_samples <- sample_info_combined$Sample[sample_info_combined$Plate == plate]
-  
-  beta_plate <- norm_matrix$beta[, plate_samples, drop = FALSE]
-  M_plate <- norm_matrix$M[, plate_samples, drop = FALSE]
-  
-  write.csv(beta_plate,
-            file.path(plate_dir, paste0(plate, "_beta.csv")),
-            row.names = TRUE)
-  
-  write.csv(M_plate,
-            file.path(plate_dir, paste0(plate, "_M.csv")),
-            row.names = TRUE)
-  
-  cat("  ", plate, ":", ncol(beta_plate), "samples\n")
+  cat("Total unique bad CpGs to remove:", length(bad_cpgs), "\n")
 }
 
-cat("✓ Plate-specific files saved to:", plate_dir, "\n")
-
 # ============================================================
-# STEP 6: GENERATE COMBINED QC REPORT (like individual plates)
+# STEP 3: DETERMINE NUMBER OF CONTROL-PROBE PCs
 # ============================================================
-cat("\n--- STEP 6: Generating combined QC report ---\n")
-cat("This will be the same style as individual plate reports\n")
-cat("but treating all plates as one combined dataset\n\n")
+# The paper (Section 3.2.2) shows that PC choice matters greatly for
+# downstream EWAS sensitivity/specificity.  The recommended approach is
+# meffil.plot.pc.fit() which uses 10-fold cross-validation to find the
+# number that minimises residual probe-quantile variance.
+# The paper found 10 PCs optimal for their dataset; we use that as the
+# default if automatic selection fails or produces an implausible result.
+# ============================================================
+cat("\n--- STEP 3: Determining number of normalization PCs ---\n")
 
-tryCatch({
-  cat("Creating combined QC summary from all QC objects...\n")
-  
-  # Set QC parameters (same as used in plate_qc_meffil.r)
-  qc_threshold <- 0.95  # This should match your pipeline parameter
-  qc_params <- meffil.qc.parameters(
-    detectionp.samples.threshold = 1 - qc_threshold,
-    detectionp.cpgs.threshold = 0.05,
-    beadnum.samples.threshold = 0.1,
-    beadnum.cpgs.threshold = 0.1,
-    sex.outlier.sd = 5,
-    snp.concordance.threshold = 0.9,
-    sample.genotype.concordance.threshold = 0.8
-  )
-  
-  cat("Using only passed samples for combined QC report...\n")
-  cat("  QC objects available:", length(qc_objects_passed), "\n")
-  
-  # Generate QC summary for all passed samples together
-  cat("Generating QC summary (this may take a few minutes)...\n")
-  combined_qc_summary <- meffil.qc.summary(
-    qc.objects = qc_objects_passed,
-    parameters = qc_params,
-    verbose = TRUE
-  )
-  
-  cat("✓ Combined QC summary created\n")
-  
-  # Generate the combined QC report (same as individual plates)
-  cat("Generating combined QC HTML report...\n")
-  
-  qc_report_file <- file.path(out_dir, "combined_qc_report.html")
-  
-  meffil.qc.report(
-    qc.summary = combined_qc_summary,
-    output.file = qc_report_file,
-    author = "Meffil Combined Pipeline",
-    study = paste0("Combined QC Report - All ", 
-                   length(unique(sample_info_combined$Plate)), 
-                   " Plates Together (",
-                   length(qc_objects_passed), " samples)")
-  )
-  
-  if (file.exists(qc_report_file)) {
-    cat("✓ Combined QC report generated successfully!\n")
-    cat("  Location:", qc_report_file, "\n")
-    cat("  This report shows all samples as if they were one plate\n")
-  } else {
-    cat("⚠ QC report function completed but file not found\n")
+PC_DEFAULT <- 10L
+
+if (n_pcs_arg > 0L) {
+  n_pcs <- n_pcs_arg
+  cat("Using user-supplied n_pcs:", n_pcs, "\n")
+} else {
+  cat("Running cross-validated PC selection (meffil.plot.pc.fit)...\n")
+  n_pcs <- tryCatch({
+    pc_fit <- meffil.plot.pc.fit(qc_objects_passed)
+
+    # ── Robustly identify the n.pcs and MSR columns ────────────────────────
+    # meffil returns a data frame but the exact column names differ across
+    # versions.  Rather than hardcoding, we:
+    #   1. Find the column whose name contains "pc" (case-insensitive) —
+    #      that is the number-of-PCs axis.
+    #   2. Average over cross-validation groups so each PC count has one
+    #      mean residual, then pick the minimum.
+    # This is robust to "n.pcs"/"number.pcs" and "mean.sq"/"mean.residuals"
+    # naming differences across meffil versions.
+    df <- pc_fit$data
+    cat("pc_fit$data columns:", paste(colnames(df), collapse = ", "), "\n")
+
+    # Column containing the number of PCs (integer-like, named with "pc")
+    pc_col <- colnames(df)[grep("^n\\.pcs$|^number|^pcs$|pc", colnames(df),
+                                ignore.case = TRUE)][1]
+    if (is.na(pc_col)) pc_col <- colnames(df)[sapply(df, is.numeric)][1]
+
+    # Column containing the residual / MSR (numeric, NOT the pc column,
+    # NOT a group/fold column)
+    numeric_cols <- colnames(df)[sapply(df, is.numeric)]
+    group_cols   <- colnames(df)[grep("group|fold|cross|iter", colnames(df),
+                                      ignore.case = TRUE)]
+    msr_col <- setdiff(numeric_cols, c(pc_col, group_cols))[1]
+
+    cat("Using PC column:", pc_col, "  MSR column:", msr_col, "\n")
+
+    # Average MSR per PC count (handles per-fold rows)
+    mean_msr <- tapply(df[[msr_col]], df[[pc_col]], mean, na.rm = TRUE)
+    best_pc  <- as.integer(names(mean_msr)[which.min(mean_msr)])
+
+    cat("Cross-validated scree minimum at:", best_pc, "PCs\n")
+
+    # Save the scree plot
+    png(file.path(out_dir, "pc_fit_scree.png"), width = 800, height = 500, res = 120)
+    print(pc_fit$plot)
+    dev.off()
+    cat("✓ PC fit scree plot saved: pc_fit_scree.png\n")
+
+    best_pc
+  }, error = function(e) {
+    cat("WARNING: meffil.plot.pc.fit failed (", conditionMessage(e), ")\n")
+    cat("Falling back to default:", PC_DEFAULT, "PCs\n")
+    PC_DEFAULT
+  })
+  # Sanity bounds: meffil supports max 42 control-probe PCs
+  if (is.null(n_pcs) || length(n_pcs) == 0 || is.na(n_pcs) ||
+      n_pcs < 1L || n_pcs > 42L) {
+    cat("PC selection returned", n_pcs, "— using default:", PC_DEFAULT, "\n")
+    n_pcs <- PC_DEFAULT
   }
-  
+}
+cat("Final n_pcs for normalization:", n_pcs, "\n")
+
+
+# ============================================================
+# STEP 4: NORMALISE QUANTILES (control-probe PCA step)
+# ============================================================
+cat("\n--- STEP 4: Normalising quantiles ---\n")
+cat("Samples:", length(qc_objects_passed), "\n")
+
+# ── Pre-flight: check control matrix variance ──────────────────────────────
+# If all control probes are zero-variance, meffil.normalize.quantiles() will
+# crash inside meffil.control.matrix(). Diagnose early with a clear message.
+cat("Pre-flight: checking control matrix variance...\n")
+ctrl_check <- tryCatch({
+  cm <- meffil.control.matrix(qc_objects_passed, normalize = FALSE)
+  col_vars <- apply(cm, 2, var, na.rm = TRUE)
+  n_zero   <- sum(col_vars == 0, na.rm = TRUE)
+  cat("  Control matrix:", nrow(cm), "samples x", ncol(cm), "probes\n")
+  cat("  Zero-variance probes:", n_zero, "/", ncol(cm), "\n")
+  if (n_zero == ncol(cm)) {
+    cat("  CRITICAL: All control matrix probes have zero variance!\n")
+    cat("  This almost always means the QC objects were built with a\n")
+    cat("  mismatched featureset (e.g. 'epic' instead of 'epicv2').\n")
+    cat("  Check: sapply(qc_objects_passed[1:3], function(x) x$featureset)\n")
+    # Print featuresets seen
+    fs <- unique(sapply(qc_objects_passed, function(x)
+                        tryCatch(x$featureset, error = function(e) "UNKNOWN")))
+    cat("  Featuresets in QC objects:", paste(fs, collapse = ", "), "\n")
+  }
+  list(ok = n_zero < ncol(cm), n_zero = n_zero, total = ncol(cm))
 }, error = function(e) {
-  cat("\n⚠ Combined QC report generation failed\n")
-  cat("Error:", conditionMessage(e), "\n")
-  cat("\nDebug information:\n")
-  cat("  Number of QC objects:", length(qc_objects_passed), "\n")
-  cat("  QC object names (first 5):", paste(head(names(qc_objects_passed), 5), collapse=", "), "\n")
+  cat("  WARNING: control matrix pre-check failed:", conditionMessage(e), "\n")
+  list(ok = TRUE, n_zero = NA, total = NA)   # proceed and let meffil report it
 })
 
+norm_objects <- meffil.normalize.quantiles(
+  qc.objects     = qc_objects_passed,
+  number.pcs     = n_pcs,
+  fixed.effects  = NULL,   # ← ADD THIS: prevents implicit batch variable injection
+  random.effects = NULL,   # ← ADD THIS
+  verbose        = TRUE
+)
+cat("✓ Quantile normalisation complete\n")
+
 # ============================================================
-# STEP 7: GENERATE NORMALIZATION REPORT
+# STEP 5: NORMALISE SAMPLES → GDS FILE
 # ============================================================
-cat("\n--- STEP 7: Generating normalization report ---\n")
+# Writing to a GDS file (Genomic Data Structure) instead of keeping
+# the full beta matrix in R memory.  For 935k probes × 288 samples,
+# the in-memory matrix peaks at ~67 GB (paper Table 1); the GDS path
+# peaks at ~3 GB.  Downstream operations use meffil.gds.methylation()
+# or meffil.gds.apply() to access data one CpG at a time.
+# ============================================================
+cat("\n--- STEP 5: Normalising samples → GDS file ---\n")
+
+gds_file <- file.path(out_dir, "beta_normalised.gds")
+cat("GDS output path:", gds_file, "\n")
+cat("remove.poor.signal: TRUE (sets NA where detection p-val too high or bead count too low)\n")
+cat("cpglist.remove:", length(bad_cpgs), "bad CpGs\n\n")
+
+meffil.normalize.samples(
+  norm.objects       = norm_objects,
+  just.beta          = TRUE,
+  remove.poor.signal = TRUE,
+  cpglist.remove     = if (length(bad_cpgs) > 0) bad_cpgs else NULL,
+  gds.filename       = gds_file,
+  max.bytes          = max_bytes,
+  verbose            = TRUE
+)
+cat("✓ GDS file written:", gds_file, "\n")
+
+# ============================================================
+# STEP 6: PCA ON AUTOSOMAL SITES FOR NORMALISATION REPORT
+# ============================================================
+# The wiki shows this exact sequence for generating the normalisation
+# report for large datasets:
+#   autosomal.sites <- meffil.get.autosomal.sites("epicv2")
+#   pcs             <- meffil.methylation.pcs(gds.filename, sites=autosomal.sites)
+#   norm.summary    <- meffil.normalization.summary(norm.objects, pcs=pcs)
+# ============================================================
+cat("\n--- STEP 6: Computing methylation PCs for normalisation report ---\n")
+
+# Determine featureset from first QC object
+featureset <- tryCatch(
+  qc_objects_passed[[1]]$featureset,
+  error = function(e) "epic"
+)
+cat("Array featureset:", featureset, "\n")
+
+autosomal_sites <- tryCatch(
+  meffil.get.autosomal.sites(featureset),
+  error = function(e) {
+    cat("WARNING: could not retrieve autosomal sites for", featureset,
+        "— falling back to 'epic'\n")
+    meffil.get.autosomal.sites("epic")
+  }
+)
+cat("Autosomal CpG sites:", length(autosomal_sites), "\n")
+
+pcs_for_report <- tryCatch({
+  cat("Computing methylation PCs from GDS (this reads the file row-wise)...\n")
+  meffil.methylation.pcs(gds_file, sites = autosomal_sites, verbose = TRUE)
+}, error = function(e) {
+  cat("WARNING: meffil.methylation.pcs failed:", conditionMessage(e), "\n")
+  NULL
+})
+
+# ── Normalisation report ───────────────────────────────────────────────────
+cat("\n--- STEP 6b: Generating normalisation report ---\n")
 
 tryCatch({
-  cat("Creating normalization summary...\n")
-  
   norm_summary <- meffil.normalization.summary(
-    norm.objects = norm_params,
-    pcs = n_pcs
+    norm.objects = norm_objects,
+    pcs          = pcs_for_report
   )
-  
-  cat("✓ Normalization summary created\n")
-  cat("Generating normalization HTML report...\n")
-  
-  norm_report_file <- file.path(out_dir, "combined_normalization_report.html")
-  
+  saveRDS(norm_summary, file.path(out_dir, "combined_norm_summary.rds"))
+
+  norm_report <- file.path(out_dir, "combined_normalization_report.html")
   meffil.normalization.report(
-    normalization.summary = norm_summary,
-    output.file = norm_report_file,
-    author = "Meffil Pipeline",
-    study = paste0("Combined Normalization - ", 
-                   length(unique(sample_info_combined$Plate)), " plates, ",
-                   nrow(sample_info_combined), " samples")
+    norm_summary,
+    output.file = norm_report,
+    author      = "Meffil Pipeline",
+    study       = paste0("Combined normalisation — ",
+                         length(unique(plate_of_sample[all_passed])),
+                         " plates, ", length(all_passed), " samples")
   )
-  
-  if (file.exists(norm_report_file)) {
-    cat("✓ Normalization report generated\n")
-  }
-  
+  cat("✓ Normalisation report:", basename(norm_report), "\n")
 }, error = function(e) {
-  cat("⚠ Normalization report failed:", conditionMessage(e), "\n")
-})
-
-# Create a comprehensive HTML summary (always, as backup or main report)
-cat("\nCreating comprehensive HTML summary...\n")
-tryCatch({
-  # Calculate some summary statistics
-  mean_call_rate <- mean(apply(norm_matrix$beta, 2, function(x) sum(!is.na(x))/length(x)))
-  
-  html_content <- paste0(
-    "<!DOCTYPE html>\n<html>\n<head>\n",
-    "<title>Combined Normalization Report</title>\n",
-    "<meta charset='UTF-8'>\n",
-    "<style>\n",
-    "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }\n",
-    ".container { max-width: 1200px; margin: 0 auto; padding: 20px; }\n",
-    ".header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }\n",
-    "h1 { margin: 0; font-size: 2.5em; }\n",
-    ".subtitle { opacity: 0.9; margin-top: 10px; }\n",
-    ".card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }\n",
-    "h2 { color: #667eea; border-bottom: 3px solid #667eea; padding-bottom: 10px; }\n",
-    ".stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }\n",
-    ".stat-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }\n",
-    ".stat-value { font-size: 2.5em; font-weight: bold; margin: 10px 0; }\n",
-    ".stat-label { opacity: 0.9; font-size: 0.9em; }\n",
-    "table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n",
-    "th { background-color: #667eea; color: white; padding: 15px; text-align: left; }\n",
-    "td { padding: 12px; border-bottom: 1px solid #e0e0e0; }\n",
-    "tr:hover { background-color: #f8f9fa; }\n",
-    ".visualization { text-align: center; margin: 30px 0; }\n",
-    ".visualization img { max-width: 100%; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n",
-    ".file-list { list-style: none; padding: 0; }\n",
-    ".file-list li { padding: 10px; margin: 5px 0; background: #f8f9fa; border-left: 4px solid #667eea; }\n",
-    ".success { color: #27ae60; font-weight: bold; }\n",
-    ".info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; border-radius: 4px; }\n",
-    "</style>\n</head>\n<body>\n",
-    "<div class='container'>\n",
-    "<div class='header'>\n",
-    "<h1>🧬 Combined Normalization Report</h1>\n",
-    "<div class='subtitle'>Meffil Functional Normalization - All Plates Combined</div>\n",
-    "</div>\n"
-  )
-  
-  # Summary statistics
-  html_content <- paste0(html_content,
-    "<div class='card'>\n<h2>📊 Summary Statistics</h2>\n",
-    "<div class='stat-grid'>\n",
-    "<div class='stat-box'>\n<div class='stat-value'>", ncol(norm_matrix$beta), "</div>\n<div class='stat-label'>Total Samples</div>\n</div>\n",
-    "<div class='stat-box'>\n<div class='stat-value'>", nrow(norm_matrix$beta), "</div>\n<div class='stat-label'>CpG Probes</div>\n</div>\n",
-    "<div class='stat-box'>\n<div class='stat-value'>", length(unique(sample_info_combined$Plate)), "</div>\n<div class='stat-label'>Plates</div>\n</div>\n",
-    "<div class='stat-box'>\n<div class='stat-value'>", n_pcs, "</div>\n<div class='stat-label'>PCs Used</div>\n</div>\n",
-    "</div>\n",
-    "<div class='info-box'>\n",
-    "<strong>Normalization Method:</strong> Meffil functional normalization with ", n_pcs, " principal components<br>\n",
-    "<strong>Mean Probe Detection:</strong> ", round(mean_call_rate * 100, 2), "%\n",
-    "</div>\n</div>\n"
-  )
-  
-  # Samples by plate
-  html_content <- paste0(html_content,
-    "<div class='card'>\n<h2>🔬 Samples by Plate</h2>\n<table>\n",
-    "<tr><th>Plate ID</th><th>Number of Samples</th><th>Percentage</th></tr>\n"
-  )
-  
-  plate_counts <- table(sample_info_combined$Plate)
-  total_samples <- sum(plate_counts)
-  for (plate in names(sort(plate_counts, decreasing = TRUE))) {
-    pct <- round(100 * plate_counts[plate] / total_samples, 1)
-    html_content <- paste0(html_content,
-      "<tr><td><strong>", plate, "</strong></td><td>", plate_counts[plate], "</td><td>", pct, "%</td></tr>\n"
-    )
-  }
-  html_content <- paste0(html_content, "</table>\n</div>\n")
-  
-  # PCA visualization
-  if (file.exists(file.path(out_dir, "PCA_combined_normalization.png"))) {
-    html_content <- paste0(html_content,
-      "<div class='card'>\n<h2>📈 Principal Component Analysis</h2>\n",
-      "<p>Visualization showing sample clustering and plate effects after combined normalization:</p>\n",
-      "<div class='visualization'>\n",
-      "<img src='PCA_combined_normalization.png' alt='PCA Plot'>\n",
-      "</div>\n</div>\n"
-    )
-  }
-  
-  # Output files
-  html_content <- paste0(html_content,
-    "<div class='card'>\n<h2>📁 Output Files</h2>\n",
-    "<ul class='file-list'>\n",
-    "<li><strong>BetaValues_all_plates_combined.csv</strong> - Beta values (0-1 scale) for all samples</li>\n",
-    "<li><strong>MValues_all_plates_combined.csv</strong> - M values (log2 ratio) for all samples</li>\n",
-    "<li><strong>sample_info_combined.csv</strong> - Sample metadata with plate assignments</li>\n",
-    "<li><strong>combined_norm_params.rds</strong> - Normalization parameters for reproducibility</li>\n",
-    "<li><strong>by_plate/</strong> - Directory containing plate-specific subsets:\n",
-    "<ul style='margin-left: 20px; margin-top: 10px;'>\n"
-  )
-  
-  for (plate in names(plate_counts)) {
-    html_content <- paste0(html_content,
-      "<li>", plate, "_beta.csv (", plate_counts[plate], " samples)</li>\n",
-      "<li>", plate, "_M.csv (", plate_counts[plate], " samples)</li>\n"
-    )
-  }
-  
-  html_content <- paste0(html_content,
-    "</ul></li>\n</ul>\n</div>\n",
-    "<div class='card'>\n<h2>✅ Pipeline Status</h2>\n",
-    "<p class='success'>✓ Combined normalization completed successfully</p>\n",
-    "<p>All plates have been normalized together using a unified reference, ensuring comparability across the entire dataset.</p>\n",
-    "</div>\n",
-    "</div>\n</body>\n</html>"
-  )
-  
-  writeLines(html_content, file.path(out_dir, "normalization_summary.html"))
-  cat("✓ Comprehensive HTML summary created: normalization_summary.html\n")
-  
-}, error = function(e) {
-  cat("⚠ Could not create HTML summary:", conditionMessage(e), "\n")
+  cat("WARNING: normalisation report failed:", conditionMessage(e), "\n")
 })
 
 # ============================================================
-# STEP 7: PCA TO VISUALIZE PLATE EFFECTS
+# STEP 7: SAMPLE METADATA AND PLATE SUMMARY
 # ============================================================
-cat("\n--- STEP 7: Creating PCA visualization ---\n")
+cat("\n--- STEP 7: Saving sample metadata ---\n")
 
-beta_complete <- norm_matrix$beta[complete.cases(norm_matrix$beta), ]
-probe_vars <- apply(beta_complete, 1, var)
-top_probes <- names(sort(probe_vars, decreasing = TRUE)[1:min(10000, length(probe_vars))])
-beta_for_pca <- beta_complete[top_probes, ]
-
-pca_result <- prcomp(t(beta_for_pca), scale. = TRUE)
-var_explained <- summary(pca_result)$importance[2, 1:2] * 100
-
-pca_df <- data.frame(
-  PC1 = pca_result$x[, 1],
-  PC2 = pca_result$x[, 2],
-  Sample = colnames(beta_for_pca),
+# Build sample info table for passed samples
+sample_info <- data.frame(
+  Sample_Name = all_passed,
+  Plate_ID    = plate_of_sample[all_passed],
   stringsAsFactors = FALSE
 )
 
-# Add plate info
-pca_df <- merge(pca_df, sample_info_combined, by = "Sample")
+# Optionally join combined samplesheet columns
+if (file.exists(combined_samplesheet_file)) {
+  cs <- read.csv(combined_samplesheet_file, stringsAsFactors = FALSE)
+  cs_cols <- setdiff(colnames(cs), "Sample_Name")
+  sample_info <- merge(sample_info, cs[, c("Sample_Name", cs_cols), drop = FALSE],
+                       by = "Sample_Name", all.x = TRUE)
+}
 
-# Test plate effect
-if (length(unique(pca_df$Plate)) > 1) {
-  plate_pval <- anova(lm(PC1 ~ Plate, data = pca_df))$'Pr(>F)'[1]
-  cat("Plate effect test (PC1 ~ Plate): p =", format.pval(plate_pval, digits = 3), "\n")
-  
-  # Plot PCA
+write.csv(sample_info,
+          file.path(out_dir, "sample_info_combined.csv"),
+          row.names = FALSE)
+cat("✓ sample_info_combined.csv written (", nrow(sample_info), "samples )\n")
+
+# Plate summary counts
+plate_counts <- table(sample_info$Plate_ID)
+cat("\nSamples per plate after QC:\n")
+for (pl in names(sort(plate_counts, decreasing = TRUE)))
+  cat(sprintf("  %-25s %d\n", pl, plate_counts[pl]))
+
+# ============================================================
+# STEP 8: PCA VISUALISATION OF PLATE EFFECTS
+# ============================================================
+# Read a top-variance subset from the GDS file to keep this in memory.
+cat("\n--- STEP 8: PCA visualisation of plate effects ---\n")
+
+tryCatch({
+  # Load all autosomal sites for variance calculation — use apply via GDS
+  cat("Computing per-probe variance from GDS...\n")
+  probe_vars <- meffil.gds.apply(
+    gds_file, bysite = TRUE, type = "double",
+    FUN = var, na.rm = TRUE
+  )
+  top_sites <- names(sort(probe_vars, decreasing = TRUE))[1:min(10000, length(probe_vars))]
+
+  cat("Loading top", length(top_sites), "variable probes for PCA...\n")
+  beta_subset <- meffil.gds.methylation(gds_file, sites = top_sites)
+
+  # Remove rows with any NA (prcomp doesn't handle NAs)
+  beta_subset <- beta_subset[complete.cases(beta_subset), ]
+  cat("Complete-case probes for PCA:", nrow(beta_subset), "\n")
+
+  pca_result  <- prcomp(t(beta_subset), scale. = TRUE)
+  var_exp     <- summary(pca_result)$importance[2, 1:2] * 100
+
+  pca_df <- data.frame(
+    PC1         = pca_result$x[, 1],
+    PC2         = pca_result$x[, 2],
+    Sample_Name = rownames(pca_result$x),
+    stringsAsFactors = FALSE
+  )
+  pca_df <- merge(pca_df, sample_info[, c("Sample_Name", "Plate_ID")],
+                  by = "Sample_Name")
+
+  plate_pval <- NA
+  if (length(unique(pca_df$Plate_ID)) > 1) {
+    plate_pval <- anova(lm(PC1 ~ Plate_ID, data = pca_df))$"Pr(>F)"[1]
+    cat("Plate effect on PC1 (ANOVA p):", format.pval(plate_pval, digits = 3), "\n")
+  }
+
   png(file.path(out_dir, "PCA_combined_normalization.png"),
       width = 1600, height = 1000, res = 150)
-  p <- ggplot(pca_df, aes(x = PC1, y = PC2, color = Plate, shape = Plate)) +
+  p <- ggplot(pca_df, aes(x = PC1, y = PC2, colour = Plate_ID, shape = Plate_ID)) +
     geom_point(size = 3, alpha = 0.7) +
     theme_minimal(base_size = 12) +
-    labs(title = "PCA: Combined Normalization (All Plates Together)",
-         subtitle = paste("Plate effect p-value =", format.pval(plate_pval, digits = 3)),
-         x = paste0("PC1 (", round(var_explained[1], 1), "%)"),
-         y = paste0("PC2 (", round(var_explained[2], 1), "%)"))
+    labs(
+      title    = "PCA: Combined Normalisation (All Plates)",
+      subtitle = if (!is.na(plate_pval))
+                   paste("Plate effect ANOVA p =", format.pval(plate_pval, digits = 3))
+                 else "Single plate",
+      x        = paste0("PC1 (", round(var_exp[1], 1), "%)"),
+      y        = paste0("PC2 (", round(var_exp[2], 1), "%)")
+    )
   print(p)
   dev.off()
-  
-  cat("✓ PCA plot saved\n")
-}
+  cat("✓ PCA plot saved: PCA_combined_normalization.png\n")
+
+}, error = function(e) {
+  cat("WARNING: PCA visualisation failed:", conditionMessage(e), "\n")
+})
+
+# Save norm objects for reproducibility / downstream EWAS
+saveRDS(norm_objects, file.path(out_dir, "combined_norm_objects.rds"))
+cat("✓ Normalisation objects saved: combined_norm_objects.rds\n")
 
 # ============================================================
 # SUMMARY
 # ============================================================
 cat("\n", rep("=", 60), "\n", sep = "")
 cat("COMBINED NORMALIZATION COMPLETED\n")
-cat(rep("=", 60), "\n", sep = "")
-cat("\nSummary:\n")
-cat("  Total samples normalized:", ncol(norm_matrix$beta), "\n")
-cat("  Total probes:", nrow(norm_matrix$beta), "\n")
-cat("  Plates included:", length(unique(sample_info_combined$Plate)), "\n")
-cat("  Method: Meffil functional normalization (combined)\n")
-cat("  PCs used:", n_pcs, "\n")
-
-cat("\nOutput files:\n")
-cat("  - BetaValues_all_plates_combined.csv (ALL samples)\n")
-cat("  - MValues_all_plates_combined.csv (ALL samples)\n")
-cat("  - sample_info_combined.csv\n")
-cat("  - combined_norm_params.rds\n")
-cat("  - combined_normalization_report.html\n")
-cat("  - by_plate/ (individual plate subsets)\n")
-
-if (length(unique(sample_info_combined$Plate)) > 1) {
-  cat("\nPlate effects in combined normalization:\n")
-  cat("  p-value:", format.pval(plate_pval, digits = 3), "\n")
-  if (plate_pval < 0.05) {
-    cat("  Note: Significant plate effects remain after combined normalization\n")
-    cat("        Consider using ComBat for additional batch correction\n")
-  } else {
-    cat("  ✓ No significant plate effects\n")
-  }
-}
-
+cat(rep("=", 60), "\n")
+cat("  Samples normalised :", length(all_passed), "\n")
+cat("  Plates             :", length(unique(plate_of_sample[all_passed])), "\n")
+cat("  Control-probe PCs  :", n_pcs, "\n")
+cat("  Bad CpGs removed   :", length(bad_cpgs), "\n")
+cat("  Output directory   :", out_dir, "\n\n")
+cat("Key outputs:\n")
+cat("  beta_normalised.gds               — normalised beta values (GDS format)\n")
+cat("  combined_normalization_report.html — meffil normalisation QC report\n")
+cat("  combined_norm_objects.rds         — norm objects (for EWAS / reproducibility)\n")
+cat("  sample_info_combined.csv          — sample metadata\n")
+cat("  PCA_combined_normalization.png    — plate-effect visualisation\n")
+cat("  pc_fit_scree.png                  — cross-validated PC selection plot\n")
+cat("\nTo access beta values downstream:\n")
+cat("  library(meffil)\n")
+cat("  beta <- meffil.gds.methylation('beta_normalised.gds',\n")
+cat("              sites=my_sites, samples=my_samples)\n")
 cat("\n", rep("=", 60), "\n", sep = "")

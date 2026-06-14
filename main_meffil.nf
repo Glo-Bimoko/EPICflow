@@ -7,10 +7,9 @@
  *   https://github.com/perishky/meffil/wiki/Full-pipeline-for-analysing-massive-datasets
  *
  * Steps:
- *   1  GROUP_BY_PLATE         – group IDATs by plate folder
- *   2  CREATE_SAMPLESHEETS    – build per-plate samplesheet CSVs
- *   3  PLATE_QC               – meffil QC per plate (produces QC objects + passed lists)
- *   3B MERGE_SAMPLESHEETS     – combine per-plate samplesheets for joint normalization
+ *   1  SPLIT_SAMPLESHEET      – split study CSV into per-plate meffil samplesheets
+ *   2  PLATE_QC               – meffil QC per plate (produces QC objects + passed lists)
+ *   2B MERGE_SAMPLESHEETS     – combine per-plate samplesheets for joint normalization
  *   4  COMBINED_NORMALIZE     – functional normalization across all plates together
  *   5  GENOTYPE_CONCORDANCE   – all-vs-all identity check on the 65 rs-probe SNPs
  */
@@ -22,19 +21,25 @@ params.conda_env             = "env_meffil_epicv2.yml"
 params.rscript               = 'Rscript'
 params.conc_threshold        = 0.99   // flag pairs with concordance >= this as duplicates
 params.conc_min_snps         = 50     // min jointly-called SNPs for a reliable comparison
+params.plate_qc_mem          = 28     // GB RAM reserved for each PLATE_QC process
+                                       // (local: keep below machine total; HPC: set to process allocation)
+params.norm_mem               = 28     // GB RAM reserved for COMBINED_NORMALIZE
+params.norm_n_pcs             = 0      // control-probe PCs for FN: 0 = auto (cross-validated scree)
 
-// ── Sample ID mapping ──────────────────────────────────────────────────────
-// Optional CSV that maps BeadChip barcodes to study-level participant IDs.
-// When provided, all samplesheets, QC reports, and output matrices will use
-// the Sample_ID column (e.g. "G001") instead of raw barcode strings
-// (e.g. "208789590164_R01C01").
+// ── Study samplesheet ──────────────────────────────────────────────────────
+// Required CSV mapping every array position to a study participant.
+// The pipeline reads this file, splits it by Plate Number, and feeds
+// one samplesheet per plate directly into PLATE_QC — no intermediate
+// grouping or samplesheet-creation step needed.
 //
-// Required columns (case-insensitive):
-//   Sample ID | BeadChip Barcode | Sentrix Position
+// Required columns (case-insensitive, spaces or underscores):
+//   Sample ID | BeadChip Barcode | Sentrix Position | Plate Number
+// Optional:
+//   Collected Gender / Sex / Gender   → used for meffil sex prediction check
 //
-// Example: --sample_map ./samplesheets/all_6_epic.csv
-// Leave empty to use raw barcode basenames (original behaviour).
-params.sample_map            = ""     // e.g. "./samplesheets/all_6_epic.csv"
+// --samplesheet and --sample_map are accepted synonyms.
+params.samplesheet           = ""     // e.g. "./samplesheets/all_6_epic.csv"
+params.sample_map            = ""     // synonym for --samplesheet
 
 // ── H3Africa cross-study concordance ──────────────────────────────────────
 // Set --h3a_bfile to enable cross-study ID checking (Steps 5-pre and 6).
@@ -60,6 +65,12 @@ params.snp_names_file        = "${projectDir}/bin/snp-names.txt"
 params.id_map                = ""
 
 
+// Resolve --samplesheet alias: if --sample_map is not set but --samplesheet
+// is, treat them as equivalent so common invocation typos don't silently skip
+// Resolve --samplesheet / --sample_map synonym.
+def STUDY_SS = params.samplesheet ?: params.sample_map ?: ""
+if (!STUDY_SS) { error "Please supply --samplesheet <path/to/all_6_epic.csv>" }
+
 // Resolve IDAT directory to absolute path
 def IDAT_DIR = params.idat_dir
 if (!IDAT_DIR.startsWith('/')) {
@@ -73,7 +84,7 @@ log.info """
          IDAT directory      : ${IDAT_DIR}
          Output directory    : ${params.out_dir}
          QC threshold        : ${params.qc_thresh}
-         Sample map          : ${params.sample_map ?: '(not set — using raw barcode basenames)'}
+         Study samplesheet   : ${STUDY_SS}
          Normalization       : Combined (all plates together)
          Concordance cutoff  : ${params.conc_threshold}
          Min SNPs (reliable) : ${params.conc_min_snps}
@@ -85,68 +96,49 @@ log.info """
          """
 
 // ============================================================
-// PROCESS 1: Group IDATs by existing plate folders
+// PROCESS 1: Split study samplesheet into per-plate meffil samplesheets
 // ============================================================
-process GROUP_BY_PLATE {
-    publishDir "${params.out_dir}/plate_manifests", mode: 'copy'
-    conda "${params.conda_env}"
-
-    output:
-    path "plate_manifests/*.txt", emit: plate_manifests
-    path "grouping_summary.txt",  emit: summary
-
-    script:
-    """
-    mkdir -p plate_manifests
-    ${params.rscript} ${projectDir}/bin/group_by_plate.r \
-        ${IDAT_DIR} \
-        plate_manifests \
-        grouping_summary.txt
-    """
-}
-
-// ============================================================
-// PROCESS 2: Create samplesheets for each plate
-// ============================================================
-process CREATE_SAMPLESHEETS {
+// Reads the study-level CSV (--samplesheet), splits by Plate Number, and
+// writes one meffil-ready CSV per plate to the work directory.
+// Each emitted file is then processed independently by PLATE_QC.
+// Rows with a missing Plate Number are written to an "unassigned" file
+// and reported as a warning; they are excluded from QC and normalization.
+process SPLIT_SAMPLESHEET {
     publishDir "${params.out_dir}/samplesheets", mode: 'copy'
     conda "${params.conda_env}"
 
-    input:
-    path plate_manifest
-    path sample_map   // optional; empty file when not provided
-
     output:
-    tuple path(plate_manifest), path("samplesheets/*.csv"), emit: plate_with_samplesheet
+    path "samplesheets/*_samplesheet.csv", emit: per_plate_samplesheets
 
     script:
-    def plate_id    = plate_manifest.baseName
-    def map_arg     = (sample_map.name != 'NO_MAP') ? "--sample_map ${sample_map}" : ""
+    def ss_path = file(STUDY_SS).toAbsolutePath()
     """
     mkdir -p samplesheets
-    ${params.rscript} ${projectDir}/bin/create_samplesheet.r \
-        ${plate_manifest} \
-        samplesheets/${plate_id}_samplesheet.csv \
-        ${map_arg}
+    ${params.rscript} ${projectDir}/bin/split_samplesheet.r \
+        ${ss_path} \
+        ${IDAT_DIR} \
+        samplesheets
     """
 }
 
 // ============================================================
-// PROCESS 3: QC per plate following meffil best practices
+// PROCESS 2: QC per plate following meffil best practices
 // ============================================================
 process PLATE_QC {
     publishDir "${params.out_dir}/qc_results", mode: 'copy'
+    memory "${params.plate_qc_mem} GB"
     conda "${params.conda_env}"
 
     input:
-    tuple path(plate_manifest), path(samplesheet)
+    path samplesheet
 
     output:
-    path "qc_results/*",                  emit: qc_all_files
-    path "qc_results/*_qc_objects.rds",   emit: qc_objects
+    path "qc_results/*",                    emit: qc_all_files
+    path "qc_results/*_qc_objects.rds",     emit: qc_objects
     path "qc_results/*_passed_samples.txt", emit: passed_samples
-    path "qc_results/*_qc_metrics.csv",   emit: qc_metrics
-    tuple path(plate_manifest), path(samplesheet), emit: plate_samplesheet
+    path "qc_results/*_qc_summary.rds",     emit: qc_summaries
+    path "qc_results/*_qc_metrics.csv",     emit: qc_metrics
+    path samplesheet,                       emit: samplesheet_out
 
     script:
     """
@@ -154,12 +146,13 @@ process PLATE_QC {
     ${params.rscript} ${projectDir}/bin/plate_qc_meffil.r \
         ${samplesheet} \
         qc_results \
-        ${params.qc_thresh}
+        ${params.qc_thresh} \
+        ${params.plate_qc_mem}
     """
 }
 
 // ============================================================
-// PROCESS 3B: Merge samplesheets for combined normalization
+// PROCESS 2B: Merge samplesheets for combined normalization
 // ============================================================
 process MERGE_SAMPLESHEETS {
     publishDir "${params.out_dir}/samplesheets", mode: 'copy'
@@ -207,11 +200,13 @@ process MERGE_SAMPLESHEETS {
 // ============================================================
 process COMBINED_NORMALIZE {
     publishDir "${params.out_dir}/normalized_combined", mode: 'copy'
+    memory "${params.norm_mem} GB"
     conda "${params.conda_env}"
 
     input:
     path qc_objects_file
     path passed_samples_file
+    path qc_summary_file
     path combined_samplesheet
 
     output:
@@ -222,17 +217,21 @@ process COMBINED_NORMALIZE {
 
     script:
     """
-    mkdir -p qc_data passed_data normalized_combined
+    mkdir -p qc_data passed_data qc_summaries normalized_combined
 
     mv ${qc_objects_file}   qc_data/
     mv ${passed_samples_file} passed_data/
+    mv ${qc_summary_file}   qc_summaries/
 
     ${params.rscript} ${projectDir}/bin/combined_normalize_meffil.r \
         qc_data \
         passed_data \
+        qc_summaries \
         ${combined_samplesheet} \
         normalized_combined \
-        ${params.qc_thresh}
+        ${params.qc_thresh} \
+        ${params.norm_mem} \
+        ${params.norm_n_pcs}
     """
 }
 
@@ -417,39 +416,22 @@ process H3A_CONCORDANCE {
 // ============================================================
 workflow {
 
-    // Step 1
-    GROUP_BY_PLATE()
+    // Step 1 — split study CSV into per-plate samplesheets
+    SPLIT_SAMPLESHEET()
 
-    // Step 2 — build per-plate samplesheets, resolving participant IDs when a
-    // sample map is provided.  The map is broadcast to every plate process via
-    // a value channel so that all plates share the same file without copying.
-    plate_manifests_ch = GROUP_BY_PLATE.out.plate_manifests.flatten()
+    // Step 2 — QC each plate independently (runs in parallel)
+    per_plate_ch = SPLIT_SAMPLESHEET.out.per_plate_samplesheets.flatten()
+    PLATE_QC(per_plate_ch)
 
-    // Create a channel for the optional sample map:
-    //   • when --sample_map is set, point to the real file
-    //   • when absent, emit a sentinel file named "NO_MAP" (no disk I/O needed;
-    //     the process script checks the name and omits the --sample_map flag)
-    if (params.sample_map) {
-        sample_map_ch = Channel.value(file(params.sample_map))
-    } else {
-        sample_map_ch = Channel.value(file("NO_MAP"))
-    }
-
-    CREATE_SAMPLESHEETS(plate_manifests_ch, sample_map_ch)
-
-    // Step 3
-    PLATE_QC(CREATE_SAMPLESHEETS.out.plate_with_samplesheet)
-
-    // Step 3B
-    all_samplesheets = PLATE_QC.out.plate_samplesheet
-        .map { manifest, samplesheet -> samplesheet }
-        .collect()
+    // Step 2B — merge per-plate samplesheets for combined normalization
+    all_samplesheets = PLATE_QC.out.samplesheet_out.collect()
     MERGE_SAMPLESHEETS(all_samplesheets)
 
     // Step 4
     COMBINED_NORMALIZE(
         PLATE_QC.out.qc_objects.collect(),
         PLATE_QC.out.passed_samples.collect(),
+        PLATE_QC.out.qc_summaries.collect(),
         MERGE_SAMPLESHEETS.out.combined_samplesheet
     )
 
@@ -493,6 +475,7 @@ workflow.onComplete {
              Results  : ${params.out_dir}
 
              Key outputs:
+               Per-plate samplesheets     : samplesheets/
                QC reports (per plate)     : qc_results/
                Combined normalized data   : normalized_combined/
                  BetaValues_all_plates_combined.csv
