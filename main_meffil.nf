@@ -210,10 +210,11 @@ process COMBINED_NORMALIZE {
     path combined_samplesheet
 
     output:
-    path "normalized_combined/*",         emit: normalized_data
+    path "normalized_combined/*",                  emit: normalized_data
+    path "normalized_combined/beta_normalised.gds", emit: gds_file
     // Pass QC objects directory forward for concordance
-    path "qc_data",                        emit: qc_objects_dir
-    path "passed_data",                    emit: passed_samples_dir
+    path "qc_data",                                emit: qc_objects_dir
+    path "passed_data",                            emit: passed_samples_dir
 
     script:
     """
@@ -350,6 +351,80 @@ print(len(rows) - 1)
 }
 
 // ============================================================
+// PROCESS 5B: Methylation profile concordance for flagged pairs
+// ============================================================
+// Runs after GENOTYPE_CONCORDANCE.  For every pair flagged as a likely
+// duplicate (concordance ≥ params.conc_cutoff on the 65 rs-probe SNPs),
+// this process loads their genome-wide beta values from the normalised
+// GDS file and computes three complementary similarity metrics:
+//
+//   Pearson r        – correlation of genome-wide beta profiles
+//   Median |Δβ|      – median absolute beta difference across all CpGs
+//   Frac |Δβ|>0.2    – fraction of CpGs with a large discordant swing
+//
+// Verdicts per pair:
+//   CONFIRMED_DUPLICATE   – all three methylation thresholds met;
+//                           these are the same biological sample
+//   BORDERLINE            – close but not all criteria satisfied
+//   METHYLATION_MISMATCH  – same genotype, divergent methylation;
+//                           consistent with a sample swap or MZ twins
+//   INSUFFICIENT_DATA     – too few CpGs available to decide
+//
+// The process exits cleanly with empty placeholder outputs when
+// flagged_duplicates.tsv contains no data rows (zero duplicates),
+// so it never blocks a clean run.
+//
+// Parameters (set in nextflow.config or pass on CLI):
+//   params.meth_r_threshold      – Pearson r must be ≥ this  (default 0.999)
+//   params.meth_delta_threshold  – Median |Δβ| must be ≤ this (default 0.01)
+//   params.meth_large_delta_frac – Frac |Δβ|>0.2 must be ≤ this (default 0.01)
+//   params.meth_chunk_size       – CpGs per GDS read chunk    (default 5000)
+//
+// Outputs published to: results/methylation_concordance/
+process METHYLATION_CONCORDANCE {
+    publishDir "${params.out_dir}/methylation_concordance", mode: 'copy'
+    conda "${params.conda_env}"
+
+    input:
+    path flagged_tsv   // *_flagged_duplicates.tsv from GENOTYPE_CONCORDANCE
+    path gds_file      // beta_normalised.gds from COMBINED_NORMALIZE
+
+    output:
+    path "methdup/*_methylation_duplicate_evidence.tsv", emit: evidence
+    path "methdup/*_methylation_duplicate_summary.txt",  emit: summary
+    path "methdup/*_methylation_duplicate_report.html",  emit: report
+
+    script:
+    def r_thr   = params.meth_r_threshold      ?: 0.999
+    def d_thr   = params.meth_delta_threshold   ?: 0.01
+    def fld_thr = params.meth_large_delta_frac  ?: 0.01
+    def chunk   = params.meth_chunk_size        ?: 5000
+    """
+    mkdir -p methdup
+
+    # Exit cleanly if no pairs were flagged (header-only or empty file)
+    n_pairs=\$(tail -n +2 ${flagged_tsv} | wc -l)
+    if [ "\${n_pairs}" -eq 0 ]; then
+        echo "No flagged pairs — skipping methylation concordance check." | \\
+            tee methdup/methylation_snps_methylation_duplicate_summary.txt
+        touch methdup/methylation_snps_methylation_duplicate_evidence.tsv
+        touch methdup/methylation_snps_methylation_duplicate_report.html
+        exit 0
+    fi
+
+    python3 ${projectDir}/bin/methylation_duplicate_check.py \\
+        --flagged          ${flagged_tsv} \\
+        --gds              ${gds_file} \\
+        --out              methdup \\
+        --prefix           methylation_snps \\
+        --r_threshold      ${r_thr} \\
+        --delta_threshold  ${d_thr} \\
+        --large_delta_frac ${fld_thr} \\
+        --chunk_size       ${chunk}
+    """
+}
+
+// ============================================================
 // PROCESS 6: Cross-study concordance against H3Africa genotype data
 // ============================================================
 // Only runs when --h3a_bfile is provided.
@@ -441,6 +516,13 @@ workflow {
         COMBINED_NORMALIZE.out.passed_samples_dir
     )
 
+    // Step 5B — methylation profile confirmation for genotype-flagged pairs
+    flagged_tsv_ch = GENOTYPE_CONCORDANCE.out.flagged
+    METHYLATION_CONCORDANCE(
+        flagged_tsv_ch,
+        COMBINED_NORMALIZE.out.gds_file
+    )
+
     // Step 5-PRE — pre-QC identity check (all samples, before exclusion)
     // Only runs if --h3a_bfile is provided.
     if (params.h3a_bfile) {
@@ -485,6 +567,10 @@ workflow.onComplete {
                  methylation_snps_concordance_report.html  ← review this
                  methylation_snps_flagged_duplicates.tsv   ← within-study duplicates
                  methylation_snps_concordance_matrix.csv
+               Methylation concordance    : methylation_concordance/
+                 methylation_snps_methylation_duplicate_report.html  ← confirms duplicates
+                 methylation_snps_methylation_duplicate_evidence.tsv ← per-pair metrics
+                 methylation_snps_methylation_duplicate_summary.txt
                Cross-study (pre-QC)       : cross_study_pre_qc/  (if --h3a_bfile set)
                  pre_qc_concordance_report.html        ← ⭐ review FIRST (all samples)
                  pre_qc_per_sample_verdict.tsv         ← per-sample classification
