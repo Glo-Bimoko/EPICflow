@@ -34,13 +34,14 @@ Outputs:
     <prefix>_methylation_duplicate_report.html    – interactive HTML report
 
 Dependencies:
-    pip install numpy pandas scipy rpy2
+    pip install numpy pandas scipy h5py
 
 Notes:
-    rpy2 is used to call meffil.gds.methylation() from Python, which keeps
-    everything in one process without writing a giant intermediate CSV.
-    The GDS file is read in chunks (--chunk_size CpGs) to stay memory-safe
-    for large datasets (EPICv2 ~900k probes).
+    h5py is used to read the GDS file directly (GDS files are HDF5 under the
+    hood), which avoids the rpy2/R dependency entirely.  The beta matrix is
+    stored in GDS as a 2-D float array under the node "genotype" (meffil
+    convention: sites × samples).  The file is read in chunks (--chunk_size
+    CpGs) to stay memory-safe for large datasets (EPICv2 ~900k probes).
 """
 
 import argparse
@@ -63,52 +64,41 @@ log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# GDS reader — wraps meffil.gds.methylation() via rpy2
+# GDS reader — reads meffil beta_normalised.gds directly via h5py
+#
+# meffil writes a GDS file that is valid HDF5.  The relevant nodes are:
+#   /sample.id   — 1-D array of sample name strings  (length = n_samples)
+#   /snp.id      — 1-D array of CpG site name strings (length = n_sites)
+#   /genotype    — 2-D float array, shape (n_sites, n_samples), beta values
+#
+# h5py reads these natively with no R or rpy2 dependency.
 # ---------------------------------------------------------------------------
 
-def load_rpy2():
-    """Import rpy2 lazily so the module can be imported without it installed."""
+def _open_gds(gds_path: str):
+    """Open the GDS file as HDF5 and return the h5py File handle."""
     try:
-        import rpy2.robjects as ro
-        from rpy2.robjects import pandas2ri
-        from rpy2.robjects.packages import importr
-        pandas2ri.activate()
-        return ro, pandas2ri, importr
+        import h5py
     except ImportError:
-        log.error(
-            "rpy2 is required for GDS access.  Install with:  pip install rpy2"
-        )
+        log.error("h5py is required for GDS access.  Install with:  conda install h5py")
         sys.exit(1)
+    return h5py.File(gds_path, "r")
+
+
+def _decode(arr) -> List[str]:
+    """Convert an h5py dataset to a plain Python list of strings."""
+    return [v.decode() if isinstance(v, bytes) else str(v) for v in arr]
 
 
 def list_gds_samples(gds_path: str) -> List[str]:
     """Return sample names stored in the GDS file."""
-    ro, _, importr = load_rpy2()
-    meffil = importr("meffil")
-    # meffil.gds.methylation with no sites/samples returns the full matrix;
-    # we just need the column names so load a tiny single probe first.
-    # Alternatively use the gdsfmt package directly.
-    gdsfmt = importr("gdsfmt")
-    gds = gdsfmt.openfn_gds(gds_path)
-    try:
-        node = gdsfmt.index_gdsn(gds, "sample.id")
-        samples = list(ro.r["read.gdsn"](node))
-    finally:
-        gdsfmt.closefn_gds(gds)
-    return samples
+    with _open_gds(gds_path) as f:
+        return _decode(f["sample.id"][:])
 
 
 def list_gds_sites(gds_path: str) -> List[str]:
     """Return all CpG site names stored in the GDS file."""
-    ro, _, importr = load_rpy2()
-    gdsfmt = importr("gdsfmt")
-    gds = gdsfmt.openfn_gds(gds_path)
-    try:
-        node = gdsfmt.index_gdsn(gds, "snp.id")
-        sites = list(ro.r["read.gdsn"](node))
-    finally:
-        gdsfmt.closefn_gds(gds)
-    return sites
+    with _open_gds(gds_path) as f:
+        return _decode(f["snp.id"][:])
 
 
 def fetch_betas_for_samples(
@@ -121,26 +111,43 @@ def fetch_betas_for_samples(
 
     Returns a DataFrame of shape (n_sites, n_samples), index = site names,
     columns = sample names.  Values are beta [0, 1]; NaN = missing.
+
+    The GDS /genotype node is shape (n_all_sites, n_all_samples).  We select
+    only the rows (sites) and columns (samples) we need using integer indices
+    so that h5py performs the slice in a single read — no full matrix in RAM.
     """
-    ro, pandas2ri, importr = load_rpy2()
-    meffil = importr("meffil")
+    with _open_gds(gds_path) as f:
+        all_samples = _decode(f["sample.id"][:])
+        all_sites   = _decode(f["snp.id"][:])
 
-    r_sites   = ro.StrVector(sites)
-    r_samples = ro.StrVector(samples)
+        # Build index maps
+        sample_idx = {s: i for i, s in enumerate(all_samples)}
+        site_idx   = {s: i for i, s in enumerate(all_sites)}
 
-    mat_r = meffil.meffil_gds_methylation(
-        gds_path,
-        sites   = r_sites,
-        samples = r_samples,
-    )
-    # Convert to pandas — rows = sites, cols = samples
-    mat = pandas2ri.rpy2py(mat_r)
-    mat = pd.DataFrame(
-        mat,
-        index   = list(ro.r["rownames"](mat_r)),
-        columns = list(ro.r["colnames"](mat_r)),
-    )
-    return mat
+        row_indices = np.array([site_idx[s]   for s in sites   if s in site_idx],   dtype=np.intp)
+        col_indices = np.array([sample_idx[s] for s in samples if s in sample_idx], dtype=np.intp)
+
+        valid_sites   = [s for s in sites   if s in site_idx]
+        valid_samples = [s for s in samples if s in sample_idx]
+
+        if len(row_indices) == 0 or len(col_indices) == 0:
+            return pd.DataFrame(index=valid_sites, columns=valid_samples, dtype=float)
+
+        # h5py fancy-index: rows first, then columns
+        geno = f["genotype"]
+        # Fancy indexing on both axes simultaneously is not supported in h5py;
+        # slice rows first (cheaper — sites are the outer dimension), then cols.
+        mat = geno[np.sort(row_indices), :][:, np.sort(col_indices)]
+
+        # Restore requested order (row_indices / col_indices may not be sorted)
+        row_order = np.argsort(np.argsort(row_indices))
+        col_order = np.argsort(np.argsort(col_indices))
+        mat = mat[row_order, :][:, col_order]
+
+        # Replace sentinel missing values (meffil uses NaN directly for floats)
+        mat = mat.astype(float)
+
+    return pd.DataFrame(mat, index=valid_sites, columns=valid_samples)
 
 
 # ---------------------------------------------------------------------------
