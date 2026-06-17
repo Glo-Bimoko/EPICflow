@@ -942,7 +942,7 @@ If you use this pipeline, please cite:
 Min, J.L., Hemani, G., Davey Smith, G., Relton, C., & Suderman, M. (2018).
 Meffil: efficient normalization and analysis of very large DNA methylation
 datasets. *Bioinformatics*, 34(23), 3983–3989.
-https://doi.org/10.1093/bioinformatics/bty594
+https://pubmed.ncbi.nlm.nih.gov/29931280/
 
 **Minfi** (underlying dependency)
 Aryee, M.J., et al. (2014). Minfi: a flexible and comprehensive Bioconductor

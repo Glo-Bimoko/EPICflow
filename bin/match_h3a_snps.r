@@ -353,6 +353,29 @@ if (!file.exists(traw_path)) {
 }
 cat("✓ H3A .traw produced:", traw_path, "\n")
 
+# Guard: check PLINK actually extracted at least one variant.
+# An empty .traw (header only) means all matched IDs were dropped by PLINK
+# (e.g. monomorphic, all-missing, or an ID mismatch in the extract list).
+# Fail early with a clear message rather than letting the downstream Python
+# script crash on an empty file.
+traw_check_lines <- readLines(traw_path)
+traw_check_lines <- traw_check_lines[-1]                          # drop header
+traw_check_lines <- traw_check_lines[nchar(trimws(traw_check_lines)) > 0]
+
+if (length(traw_check_lines) == 0) {
+  cat("\n⚠  PLINK produced an empty .traw (0 variants extracted).\n")
+  cat("   Extract list contained", nrow(all_matches), "variant(s):\n")
+  cat("   ", paste(all_matches$H3A_SNP, collapse = ", "), "\n\n")
+  cat("   Possible causes:\n")
+  cat("   - Variants were dropped by PLINK (monomorphic, all-missing, etc.)\n")
+  cat("   - Variant IDs in the extract list do not exactly match the .bim\n")
+  cat("   Check the PLINK log for details:", paste0(plink_out, ".log"), "\n\n")
+  cat("Exiting: cannot proceed with cross-study concordance on 0 SNPs.\n")
+  quit(status = 1, save = "no")
+}
+
+cat("  Variants in extracted .traw:", length(traw_check_lines), "\n")
+
 # ============================================================
 # STEP 8: RELABEL SNP IDs AND CLEAN SAMPLE IDs
 # ============================================================

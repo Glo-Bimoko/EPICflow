@@ -529,19 +529,21 @@ def write_html_report(
         for cat, cnt in class_counts.items()
     )
 
-    verdict_rows = "".join(
-        f"<tr>"
-        f"<td>{v['epic_sample']}</td>"
-        f"<td>{v['assigned_h3a']}</td>"
-        f"<td>{v.get('assigned_score','NA')}</td>"
-        f"<td>{v['best_h3a']}</td>"
-        f"<td>{v['best_score']}</td>"
-        f"<td>{v['n_snps_best']}</td>"
-        f"<td><span style='color:{_cat_color(v[\"classification\"])};font-weight:bold'>"
-        f"{v['classification']}</span></td>"
-        f"</tr>\n"
-        for v in verdicts
-    )
+    def _verdict_row(v):
+        color = _cat_color(v["classification"])
+        return (
+            f"<tr>"
+            f"<td>{v['epic_sample']}</td>"
+            f"<td>{v['assigned_h3a']}</td>"
+            f"<td>{v.get('assigned_score','NA')}</td>"
+            f"<td>{v['best_h3a']}</td>"
+            f"<td>{v['best_score']}</td>"
+            f"<td>{v['n_snps_best']}</td>"
+            f"<td><span style='color:{color};font-weight:bold'>"
+            f"{v['classification']}</span></td>"
+            f"</tr>\n"
+        )
+    verdict_rows = "".join(_verdict_row(v) for v in verdicts)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">

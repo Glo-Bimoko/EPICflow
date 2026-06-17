@@ -34,14 +34,14 @@ Outputs:
     <prefix>_methylation_duplicate_report.html    – interactive HTML report
 
 Dependencies:
-    pip install numpy pandas scipy h5py
+    pip install numpy pandas scipy
+    Rscript with meffil / gdsfmt installed (already required by the pipeline)
 
 Notes:
-    h5py is used to read the GDS file directly (GDS files are HDF5 under the
-    hood), which avoids the rpy2/R dependency entirely.  The beta matrix is
-    stored in GDS as a 2-D float array under the node "genotype" (meffil
-    convention: sites × samples).  The file is read in chunks (--chunk_size
-    CpGs) to stay memory-safe for large datasets (EPICv2 ~900k probes).
+    GDS reading is delegated to a small inline Rscript called via subprocess.
+    R writes the requested beta sub-matrix to a temp CSV; Python reads it back
+    for stats.  This avoids rpy2 and pygds entirely while reusing the R
+    installation already present in the conda environment.
 """
 
 import argparse
@@ -64,41 +64,92 @@ log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# GDS reader — reads meffil beta_normalised.gds directly via h5py
+# GDS reader — delegates to Rscript via subprocess (no rpy2 / pygds needed)
 #
-# meffil writes a GDS file that is valid HDF5.  The relevant nodes are:
-#   /sample.id   — 1-D array of sample name strings  (length = n_samples)
-#   /snp.id      — 1-D array of CpG site name strings (length = n_sites)
-#   /genotype    — 2-D float array, shape (n_sites, n_samples), beta values
+# Strategy: one R call per run_analysis() invocation.
+#   1. list_gds_samples / list_gds_sites: tiny R script → temp CSV with IDs
+#   2. fetch_betas_for_samples: R reads the full sub-matrix → temp CSV
+#      Python reads the CSV back as a DataFrame.
 #
-# h5py reads these natively with no R or rpy2 dependency.
+# The subprocess approach is safe because R + meffil + gdsfmt are already
+# installed in the conda env that the Nextflow process activates.
 # ---------------------------------------------------------------------------
 
-def _open_gds(gds_path: str):
-    """Open the GDS file as HDF5 and return the h5py File handle."""
-    try:
-        import h5py
-    except ImportError:
-        log.error("h5py is required for GDS access.  Install with:  conda install h5py")
+import shutil
+import subprocess
+import tempfile
+
+
+def _find_rscript() -> str:
+    """Return path to Rscript, preferring the conda env copy."""
+    # Check env var set by nextflow.config (params.rscript)
+    rscript = os.environ.get("RSCRIPT_BIN", "")
+    if rscript and shutil.which(rscript):
+        return rscript
+    if shutil.which("Rscript"):
+        return "Rscript"
+    log.error("Rscript not found on PATH.  Make sure R is installed.")
+    sys.exit(1)
+
+
+def _run_r(r_code: str, label: str = "R") -> None:
+    """Run an inline R script, streaming stderr to the logger."""
+    rscript = _find_rscript()
+    result = subprocess.run(
+        [rscript, "--vanilla", "-e", r_code],
+        capture_output=True,
+        text=True,
+    )
+    if result.stderr.strip():
+        for line in result.stderr.strip().splitlines():
+            log.debug("[%s] %s", label, line)
+    if result.returncode != 0:
+        log.error("[%s] Rscript exited with code %d", label, result.returncode)
+        log.error("[%s] stdout: %s", label, result.stdout[:2000])
+        log.error("[%s] stderr: %s", label, result.stderr[:2000])
         sys.exit(1)
-    return h5py.File(gds_path, "r")
-
-
-def _decode(arr) -> List[str]:
-    """Convert an h5py dataset to a plain Python list of strings."""
-    return [v.decode() if isinstance(v, bytes) else str(v) for v in arr]
 
 
 def list_gds_samples(gds_path: str) -> List[str]:
     """Return sample names stored in the GDS file."""
-    with _open_gds(gds_path) as f:
-        return _decode(f["sample.id"][:])
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
+        out_path = tmp.name
+    try:
+        r_code = f"""
+suppressPackageStartupMessages({{
+    library(gdsfmt)
+}})
+gds <- openfn.gds("{gds_path}")
+ids <- read.gdsn(index.gdsn(gds, "sample.id"))
+closefn.gds(gds)
+write.csv(data.frame(sample_id=ids), "{out_path}", row.names=FALSE, quote=FALSE)
+"""
+        _run_r(r_code, "list_gds_samples")
+        return pd.read_csv(out_path)["sample_id"].tolist()
+    finally:
+        if os.path.exists(out_path):
+            os.unlink(out_path)
 
 
 def list_gds_sites(gds_path: str) -> List[str]:
     """Return all CpG site names stored in the GDS file."""
-    with _open_gds(gds_path) as f:
-        return _decode(f["snp.id"][:])
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
+        out_path = tmp.name
+    try:
+        r_code = f"""
+suppressPackageStartupMessages({{
+    library(gdsfmt)
+}})
+gds <- openfn.gds("{gds_path}")
+ids <- read.gdsn(index.gdsn(gds, "snp.id"))
+closefn.gds(gds)
+write.csv(data.frame(site_id=ids), "{out_path}", row.names=FALSE, quote=FALSE)
+"""
+        _run_r(r_code, "list_gds_sites")
+        return pd.read_csv(out_path)["site_id"].tolist()
+    finally:
+        if os.path.exists(out_path):
+            os.unlink(out_path)
 
 
 def fetch_betas_for_samples(
@@ -107,47 +158,40 @@ def fetch_betas_for_samples(
     samples: List[str],
 ) -> pd.DataFrame:
     """
-    Load a beta sub-matrix for the given sites and samples.
+    Load a beta sub-matrix for the given sites and samples via Rscript.
 
     Returns a DataFrame of shape (n_sites, n_samples), index = site names,
     columns = sample names.  Values are beta [0, 1]; NaN = missing.
-
-    The GDS /genotype node is shape (n_all_sites, n_all_samples).  We select
-    only the rows (sites) and columns (samples) we need using integer indices
-    so that h5py performs the slice in a single read — no full matrix in RAM.
     """
-    with _open_gds(gds_path) as f:
-        all_samples = _decode(f["sample.id"][:])
-        all_sites   = _decode(f["snp.id"][:])
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as tmp_sites:
+        tmp_sites.write("\n".join(sites))
+        sites_path = tmp_sites.name
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as tmp_samp:
+        tmp_samp.write("\n".join(samples))
+        samples_path = tmp_samp.name
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp_out:
+        out_path = tmp_out.name
 
-        # Build index maps
-        sample_idx = {s: i for i, s in enumerate(all_samples)}
-        site_idx   = {s: i for i, s in enumerate(all_sites)}
-
-        row_indices = np.array([site_idx[s]   for s in sites   if s in site_idx],   dtype=np.intp)
-        col_indices = np.array([sample_idx[s] for s in samples if s in sample_idx], dtype=np.intp)
-
-        valid_sites   = [s for s in sites   if s in site_idx]
-        valid_samples = [s for s in samples if s in sample_idx]
-
-        if len(row_indices) == 0 or len(col_indices) == 0:
-            return pd.DataFrame(index=valid_sites, columns=valid_samples, dtype=float)
-
-        # h5py fancy-index: rows first, then columns
-        geno = f["genotype"]
-        # Fancy indexing on both axes simultaneously is not supported in h5py;
-        # slice rows first (cheaper — sites are the outer dimension), then cols.
-        mat = geno[np.sort(row_indices), :][:, np.sort(col_indices)]
-
-        # Restore requested order (row_indices / col_indices may not be sorted)
-        row_order = np.argsort(np.argsort(row_indices))
-        col_order = np.argsort(np.argsort(col_indices))
-        mat = mat[row_order, :][:, col_order]
-
-        # Replace sentinel missing values (meffil uses NaN directly for floats)
-        mat = mat.astype(float)
-
-    return pd.DataFrame(mat, index=valid_sites, columns=valid_samples)
+    try:
+        r_code = f"""
+suppressPackageStartupMessages({{
+    library(meffil)
+}})
+sites_raw <- readLines("{sites_path}")
+sites   <- if (length(sites_raw) == 0) NULL else sites_raw
+samples <- readLines("{samples_path}")
+mat <- meffil.gds.methylation("{gds_path}", sites=sites, samples=samples)
+# mat is sites x samples; write with row names as first column
+df <- data.frame(site_id=rownames(mat), mat, check.names=FALSE)
+write.csv(df, "{out_path}", row.names=FALSE, quote=FALSE, na="NA")
+"""
+        _run_r(r_code, "fetch_betas")
+        df = pd.read_csv(out_path, index_col=0, na_values="NA")
+        return df
+    finally:
+        for p in [sites_path, samples_path, out_path]:
+            if os.path.exists(p):
+                os.unlink(p)
 
 
 # ---------------------------------------------------------------------------
@@ -255,64 +299,31 @@ def run_analysis(
     )
     log.info("Unique samples to load betas for: %d", len(samples_needed))
 
-    # ── Get all CpG site names from GDS ──────────────────────────────────
-    log.info("Reading site list from GDS: %s", gds_path)
-    all_sites = list_gds_sites(gds_path)
-    n_sites = len(all_sites)
-    log.info("Total CpG sites in GDS: %d", n_sites)
-
-    # ── Accumulate metrics per pair in chunks ─────────────────────────────
-    # We initialise accumulators as lists and reduce at the end to avoid
-    # holding the full (n_sites × n_samples) matrix in memory at once.
-
-    # Accumulators: per pair, lists of per-chunk arrays
-    pair_keys = list(zip(flagged["sample_a"], flagged["sample_b"]))
-    # {(a,b): {"deltas": [], "a_vals": [], "b_vals": []}}
-    pair_acc: Dict[Tuple, Dict] = {
-        k: {"deltas": [], "a_vals": [], "b_vals": []}
-        for k in pair_keys
-    }
-
-    n_chunks = (n_sites + chunk_size - 1) // chunk_size
+    # ── Load all beta values for needed samples in one R call ────────────
+    # meffil.gds.methylation() reads only requested samples and all sites,
+    # which is efficient for the small number of flagged samples (≤~30).
+    # chunk_size is retained as a parameter for API compatibility but is
+    # no longer used; R handles memory management internally.
+    log.info("Fetching beta matrix from GDS via Rscript …")
+    beta_mat = fetch_betas_for_samples(gds_path, sites=[], samples=samples_needed)
+    # sites=[] → meffil returns all sites; samples= filters columns
     log.info(
-        "Loading betas in %d chunks of ≤%d sites …", n_chunks, chunk_size
+        "Beta matrix loaded: %d sites × %d samples",
+        beta_mat.shape[0], beta_mat.shape[1],
     )
 
-    for chunk_idx in range(n_chunks):
-        start = chunk_idx * chunk_size
-        end   = min(start + chunk_size, n_sites)
-        chunk_sites = all_sites[start:end]
-
-        if (chunk_idx + 1) % 10 == 0 or chunk_idx == n_chunks - 1:
-            log.info(
-                "  Chunk %d/%d  (sites %d–%d)",
-                chunk_idx + 1, n_chunks, start + 1, end,
-            )
-
-        beta_chunk = fetch_betas_for_samples(gds_path, chunk_sites, samples_needed)
-
-        for sample_a, sample_b in pair_keys:
-            if sample_a not in beta_chunk.columns or sample_b not in beta_chunk.columns:
-                continue
-            a_vals = beta_chunk[sample_a].values
-            b_vals = beta_chunk[sample_b].values
-            pair_acc[(sample_a, sample_b)]["a_vals"].append(a_vals)
-            pair_acc[(sample_a, sample_b)]["b_vals"].append(b_vals)
-
-    # ── Compute final metrics per pair ────────────────────────────────────
-    log.info("Computing methylation metrics for %d pairs …", len(pair_keys))
+    # ── Compute metrics per pair ──────────────────────────────────────────
+    log.info("Computing methylation metrics for %d pairs …", len(flagged))
+    pair_keys = list(zip(flagged["sample_a"], flagged["sample_b"]))
     results = []
 
     for _, row in flagged.iterrows():
         sample_a = row["sample_a"]
         sample_b = row["sample_b"]
-        key = (sample_a, sample_b)
 
-        acc = pair_acc.get(key, {})
-        a_all = np.concatenate(acc.get("a_vals", [])) if acc.get("a_vals") else np.array([])
-        b_all = np.concatenate(acc.get("b_vals", [])) if acc.get("b_vals") else np.array([])
-
-        if len(a_all) == 0 or len(b_all) == 0:
+        if sample_a not in beta_mat.columns or sample_b not in beta_mat.columns:
+            missing = [s for s in [sample_a, sample_b] if s not in beta_mat.columns]
+            log.warning("Sample(s) not found in GDS: %s — skipping pair", missing)
             metrics = {
                 "n_cpgs": 0,
                 "pearson_r": float("nan"),
@@ -323,7 +334,9 @@ def run_analysis(
             }
         else:
             metrics = methylation_metrics(
-                a_all, b_all, large_delta_cutoff=0.2
+                beta_mat[sample_a].values,
+                beta_mat[sample_b].values,
+                large_delta_cutoff=0.2,
             )
 
         verdict = classify_pair(

@@ -71,10 +71,28 @@ params.id_map                = ""
 def STUDY_SS = params.samplesheet ?: params.sample_map ?: ""
 if (!STUDY_SS) { error "Please supply --samplesheet <path/to/all_6_epic.csv>" }
 
-// Resolve IDAT directory to absolute path
+// Resolve all user-supplied paths to absolute so they work correctly
+// inside Nextflow work directories, which are never the project root.
+
 def IDAT_DIR = params.idat_dir
 if (!IDAT_DIR.startsWith('/')) {
     IDAT_DIR = "${projectDir}/${IDAT_DIR}"
+}
+
+if (params.h3a_bfile && !params.h3a_bfile.startsWith('/')) {
+    params.h3a_bfile = "${projectDir}/${params.h3a_bfile}"
+}
+
+if (params.id_map && !params.id_map.startsWith('/')) {
+    params.id_map = "${projectDir}/${params.id_map}"
+}
+
+if (params.snp_names_file && !params.snp_names_file.startsWith('/')) {
+    params.snp_names_file = "${projectDir}/${params.snp_names_file}"
+}
+
+if (params.plink && !params.plink.startsWith('/') && params.plink != 'plink') {
+    params.plink = "${projectDir}/${params.plink}"
 }
 
 log.info """
@@ -242,7 +260,7 @@ process COMBINED_NORMALIZE {
 // ============================================================
 // Runs immediately after PLATE_QC — before any sample is excluded.
 // Uses ALL QC objects (passed and failed), matching the approach from
-// Sinenhlanhla Mthembu / PURE-SA-NW (methylation_genotype_matching.R):
+// Dr Mthembu / PURE-SA-NW (methylation_genotype_matching.R):
 // a swapped or contaminated sample may fail QC *because* of the swap,
 // so identity checking must happen before exclusion.
 //
